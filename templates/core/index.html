@@ -1,32 +1,26 @@
 {% extends 'base.html' %}
-{% load static %}
-
 {% block content %}
-<section class="highlight-bg py-24 px-6 overflow-hidden">
+<section class="hero-highlight py-20 px-6 overflow-hidden">
     <div class="container mx-auto grid md:grid-cols-2 gap-12 items-center">
         <div data-aos="fade-right">
-            <h1 class="text-5xl md:text-6xl font-black text-slate-900 leading-tight mb-6">Premium Xerox <br><span class="text-blue-600">At Your Doorstep</span></h1>
-            <p class="text-gray-600 text-lg mb-10 max-w-lg">Experience the fastest and highest quality printing and binding service online. Upload your files and get them delivered today.</p>
-            <a href="/services" class="bg-blue-600 text-white px-10 py-4 rounded-full font-bold shadow-xl hover:bg-blue-700 transition-all inline-block">Order Now</a>
+            <h1 class="text-5xl md:text-6xl font-black mb-6 leading-tight">Instant <span class="text-blue-600">Xerox Booking</span> <br>Online</h1>
+            <p class="text-slate-600 text-lg mb-10">Get your documents printed and bound with professional quality from your home.</p>
+            <a href="/services" class="bg-blue-600 text-white px-10 py-4 rounded-full font-bold shadow-xl inline-block">Order Now</a>
         </div>
-        <div class="relative" data-aos="zoom-in">
-            <img src="https://cdn3d.iconscout.com/3d/premium/thumb/printer-4437145-3684784.png" class="floating w-full max-w-md mx-auto" alt="3D Printer">
-        </div>
+        <div data-aos="zoom-in" class="relative"><img src="https://cdn-icons-png.flaticon.com/512/2900/2900213.png" class="floating-3d w-full max-w-sm mx-auto" alt="Printer"></div>
     </div>
 </section>
 
 <section class="bg-white py-24 px-6">
-    <div class="container mx-auto">
-        <h2 class="text-4xl font-black text-center mb-16" data-aos="fade-up">Our Services</h2>
+    <div class="container mx-auto text-center">
+        <h2 class="text-4xl font-black mb-16 uppercase" data-aos="fade-up">Our Services</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
             {% for s in services %}
-            <div class="p-8 border-2 border-gray-50 rounded-3xl hover:shadow-2xl transition-all text-center group" data-aos="fade-up">
-                <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 text-3xl group-hover:bg-blue-600 group-hover:text-white transition-all">
-                    <i class="fas {{ s.icon_class }}"></i>
-                </div>
-                <h3 class="text-2xl font-bold mb-2">{{ s.name }}</h3>
-                <p class="text-gray-500 mb-8 text-sm">Professional quality {{ s.name }} service.</p>
-                <a href="/services" class="bg-gray-900 text-white px-6 py-2 rounded-xl font-bold">Order Now</a>
+            <div class="p-8 border rounded-3xl hover:shadow-2xl transition-all" data-aos="fade-up">
+                <i class="fas {{ s.icon_class }} text-4xl text-blue-600 mb-6"></i>
+                <h3 class="text-2xl font-bold mb-4">{{ s.name }}</h3>
+                <p class="text-slate-500 text-sm mb-6">{{ s.short_description }}</p>
+                <a href="/services" class="bg-slate-100 px-6 py-2 rounded-lg font-bold hover:bg-blue-600 hover:text-white">Order Now</a>
             </div>
             {% endfor %}
         </div>
@@ -35,64 +29,19 @@
 
 <section class="bg-white py-24 px-6 border-t">
     <div class="container mx-auto text-center">
-        <h2 class="text-3xl font-black mb-4">HOW IT WORKS</h2>
-        <p class="text-gray-500 mb-16">Get your prints in 3 simple steps</p>
+        <h2 class="text-3xl font-black mb-16 uppercase">How It Works</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
-            <div data-aos="fade-right">
-                <div class="text-5xl text-blue-600 mb-6"><i class="fas fa-file-arrow-up"></i></div>
-                <h4 class="font-bold text-xl mb-3">Upload a File</h4>
-                <p class="text-gray-500 text-sm">Upload your PDF, DOCX, or Image files securely to our platform.</p>
-            </div>
-            <div data-aos="fade-up">
-                <div class="text-5xl text-blue-600 mb-6"><i class="fas fa-gears"></i></div>
-                <h4 class="font-bold text-xl mb-3">Choose Service</h4>
-                <p class="text-gray-500 text-sm">Select your binding type, color options, and number of copies.</p>
-            </div>
-            <div data-aos="fade-left">
-                <div class="text-5xl text-blue-600 mb-6"><i class="fas fa-truck-fast"></i></div>
-                <h4 class="font-bold text-xl mb-3">Place the Order</h4>
-                <p class="text-gray-500 text-sm">Confirm your order and get fast doorstep delivery at your location.</p>
-            </div>
+            <div data-aos="fade-right"><i class="fas fa-file-upload text-4xl text-blue-600 mb-4"></i><h4 class="font-bold text-xl mb-2">Upload File</h4><p class="text-slate-500">Upload your PDF or images securely.</p></div>
+            <div data-aos="fade-up"><i class="fas fa-tasks text-4xl text-blue-600 mb-4"></i><h4 class="font-bold text-xl mb-2">Choose Service</h4><p class="text-slate-500">Pick color, copies and binding.</p></div>
+            <div data-aos="fade-left"><i class="fas fa-truck text-4xl text-blue-600 mb-4"></i><h4 class="font-bold text-xl mb-2">Place Order</h4><p class="text-slate-500">Fast delivery to your location.</p></div>
         </div>
     </div>
 </section>
 
-<section class="bg-white py-24 px-6 border-t">
-    <div class="container mx-auto">
-        <div class="text-center mb-16">
-            <h2 class="text-3xl font-black uppercase mb-4">Why Choose Us</h2>
-            <p class="text-gray-500">We offer the best quality and reliable services.</p>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div class="text-center p-6" data-aos="zoom-in">
-                <i class="fas fa-certificate text-3xl text-yellow-500 mb-4"></i>
-                <h4 class="font-bold">Best Quality</h4>
-                <p class="text-xs text-gray-400 mt-2 leading-relaxed">We use premium paper and original ink for crisp results.</p>
-            </div>
-            <div class="text-center p-6" data-aos="zoom-in" data-aos-delay="100">
-                <i class="fas fa-bolt text-3xl text-blue-500 mb-4"></i>
-                <h4 class="font-bold">Fast Service</h4>
-                <p class="text-xs text-gray-400 mt-2 leading-relaxed">Orders are processed within minutes for quick delivery.</p>
-            </div>
-            <div class="text-center p-6" data-aos="zoom-in" data-aos-delay="200">
-                <i class="fas fa-shield-check text-3xl text-green-500 mb-4"></i>
-                <h4 class="font-bold">Privacy</h4>
-                <p class="text-xs text-gray-400 mt-2 leading-relaxed">Your documents are safe and deleted after printing.</p>
-            </div>
-            <div class="text-center p-6" data-aos="zoom-in" data-aos-delay="300">
-                <i class="fas fa-headset text-3xl text-purple-500 mb-4"></i>
-                <h4 class="font-bold">24/7 Support</h4>
-                <p class="text-xs text-gray-400 mt-2 leading-relaxed">Always available for any order related queries.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="highlight-bg py-20 text-center">
+<section class="hero-highlight py-20 text-center">
     <div class="container mx-auto px-6" data-aos="flip-up">
         <h2 class="text-4xl font-black mb-4">Ready to get started?</h2>
-        <p class="mb-10 text-gray-600">Join thousands of customers and order your first xerox now.</p>
-        <a href="/services" class="bg-blue-600 text-white px-12 py-4 rounded-full font-bold hover:scale-105 transition-transform inline-block">Start Your Order</a>
+        <a href="/services" class="bg-blue-600 text-white px-12 py-4 rounded-full font-bold shadow-lg inline-block">Start Your Order</a>
     </div>
 </section>
 {% endblock %}

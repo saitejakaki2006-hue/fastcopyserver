@@ -1,26 +1,24 @@
 {% extends 'base.html' %}
-{% load static %}
-
 {% block content %}
-<section class="bg-white py-12 px-6">
+<section class="bg-white py-12 px-6 border-b">
     <div class="container mx-auto text-center" data-aos="fade-down">
-        <h1 class="text-4xl font-black uppercase tracking-tight">Configure Your Service</h1>
-        <p class="text-gray-500 mt-2">Select a service and customize your order details below.</p>
+        <h1 class="text-4xl font-black uppercase">Configure Your Order</h1>
+        <p class="text-slate-500 mt-2">Select a service and customize your document details.</p>
     </div>
 </section>
 
-<div class="container mx-auto px-6 py-10">
+<div class="container mx-auto px-6 py-12">
     <div class="flex overflow-x-auto space-x-6 pb-6 mb-12 no-scrollbar border-b">
         {% for s in services %}
         <button onclick="selectService('{{ s.name }}', '{{ forloop.counter }}')" 
                 id="btn-{{ forloop.counter }}"
                 class="service-tab whitespace-nowrap px-10 py-4 rounded-t-3xl border border-b-0 font-bold flex items-center gap-3">
-            <i class="fas {{ s.icon_class }} text-xl"></i> {{ s.name }}
+            <i class="fas {{ s.icon_class }}"></i> {{ s.name }}
         </button>
         {% endfor %}
     </div>
 
-    <div id="service-card" class="max-w-4xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100" data-aos="zoom-in">
+    <div class="max-w-4xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border" data-aos="zoom-in">
         <div id="form-header" class="p-8 text-white transition-all duration-500 bg-blue-600">
             <h2 id="active-service-title" class="text-3xl font-black uppercase tracking-widest">Printing</h2>
         </div>
@@ -29,62 +27,44 @@
             <div class="space-y-4">
                 <h3 class="text-xl font-bold">1. Your Information</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <input type="text" placeholder="Full Name" class="form-input">
-                    <input type="text" placeholder="Phone Number" class="form-input">
+                    <input type="text" placeholder="Full Name" class="w-full border-2 p-4 rounded-2xl outline-none focus:border-blue-500 bg-slate-50">
+                    <input type="text" placeholder="Phone Number" class="w-full border-2 p-4 rounded-2xl outline-none focus:border-blue-500 bg-slate-50">
                 </div>
             </div>
 
             <div class="space-y-4">
                 <h3 class="text-xl font-bold">2. Upload Your Document</h3>
-                <div class="border-4 border-dashed border-gray-100 rounded-3xl p-12 text-center hover:bg-gray-50 transition-all cursor-pointer relative group">
-                    <input type="file" id="fileInput" class="absolute inset-0 opacity-0 cursor-pointer" onchange="calculatePrice()">
-                    <div class="space-y-3">
-                        <i class="fas fa-cloud-arrow-up text-5xl text-blue-500 group-hover:scale-110 transition-transform"></i>
-                        <p class="font-bold text-gray-700">Click to upload a file</p>
-                        <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">S.No: 001 | PDF, DOCX, JPG, PNG Supported</p>
-                    </div>
+                <div class="upload-area rounded-3xl p-12 text-center relative group">
+                    <input type="file" class="absolute inset-0 opacity-0 cursor-pointer" onchange="updatePrice()">
+                    <i class="fas fa-cloud-arrow-up text-5xl text-blue-500 mb-4"></i>
+                    <p class="font-bold text-slate-700">Click to upload file</p>
+                    <p class="text-xs text-slate-400 mt-1 uppercase">PDF, DOCX, JPG supported</p>
                 </div>
             </div>
 
             <div class="space-y-4">
                 <h3 class="text-xl font-bold">3. Choose Options</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                        <label class="text-xs font-bold text-gray-400 uppercase mb-2 block">Printing Type</label>
-                        <select id="pType" class="form-input bg-white" onchange="calculatePrice()">
-                            <option value="bw">Black & White (₹2)</option>
-                            <option value="color">Color (₹10)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-gray-400 uppercase mb-2 block">Side Type</label>
-                        <select id="sType" class="form-input bg-white" onchange="calculatePrice()">
-                            <option value="1">One Side</option>
-                            <option value="2">Two Sides</option>
-                            <option value="0.5">1/2 Page</option>
-                            <option value="0.25">1/4 Page</option>
-                            <option value="0.125">1/8 Page</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-gray-400 uppercase mb-2 block">Copies</label>
-                        <input type="number" id="pCopies" value="1" min="1" class="form-input" oninput="calculatePrice()">
-                    </div>
+                    <select id="pType" class="w-full border-2 p-4 rounded-2xl bg-white outline-none focus:border-blue-500" onchange="updatePrice()">
+                        <option value="bw">Black & White (₹2)</option><option value="color">Color (₹10)</option>
+                    </select>
+                    <select id="sType" class="w-full border-2 p-4 rounded-2xl bg-white outline-none focus:border-blue-500" onchange="updatePrice()">
+                        <option value="1">One Side</option><option value="2">Two Sides</option><option value="0.5">1/2 Page</option><option value="0.25">1/4 Page</option>
+                    </select>
+                    <input type="number" id="pCopies" value="1" min="1" class="w-full border-2 p-4 rounded-2xl outline-none focus:border-blue-500" oninput="updatePrice()">
                 </div>
             </div>
 
-            <div class="bg-gray-50 p-8 rounded-3xl flex justify-between items-center border">
-                <span class="text-gray-400 font-black uppercase tracking-widest">Total Price:</span>
-                <span class="text-5xl font-black text-slate-900">₹<span id="final-price">2</span></span>
+            <div class="bg-slate-50 p-8 rounded-3xl flex justify-between items-center border">
+                <span class="text-slate-400 font-bold uppercase tracking-widest">Estimated Price:</span>
+                <span class="text-4xl font-black text-slate-900">₹<span id="final-price">2</span></span>
             </div>
 
-            <div class="flex flex-col md:flex-row gap-4 pt-6">
-                <button type="submit" class="flex-1 bg-green-600 text-white font-black py-5 rounded-2xl hover:bg-green-700 shadow-xl transition-all">ORDER NOW</button>
-                <button type="button" class="flex-1 bg-gray-100 text-slate-800 font-black py-5 rounded-2xl border hover:bg-gray-200">ADD TO CART</button>
+            <div class="flex gap-4">
+                <button type="submit" class="flex-1 bg-green-600 text-white font-black py-5 rounded-2xl hover:bg-green-700 shadow-lg">ORDER NOW</button>
+                <button type="button" class="flex-1 bg-slate-100 text-slate-800 font-black py-5 rounded-2xl border hover:bg-slate-200">ADD TO CART</button>
             </div>
         </form>
     </div>
 </div>
-
-<script src="{% static 'js/services.js' %}"></script>
 {% endblock %}

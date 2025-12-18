@@ -8,3 +8,5 @@ def home(request):
 def services_page(request):
     services = Service.objects.all()
     return render(request, 'core/services.html', {'services': services})
+def about(request):
+    return render(request, 'core/about.html')
