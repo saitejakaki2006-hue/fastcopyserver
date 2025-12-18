@@ -103,3 +103,25 @@ body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
     background: rgba(255, 255, 255, 0.9);
     border: 1px solid #e2e8f0;
 }
+
+/* --- Auth Pages Specific --- */
+.auth-container {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 450px;
+    background: white;
+    padding: 2.5rem;
+    border-radius: 2rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+}
+
+.auth-input {
+    @apply w-full bg-slate-50 border-2 border-slate-100 p-4 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all mb-4;
+}

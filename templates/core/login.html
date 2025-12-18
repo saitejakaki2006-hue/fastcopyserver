@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="auth-container px-6">
+    <div class="auth-card" data-aos="zoom-in">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-black uppercase tracking-tight text-slate-900">Welcome Back</h2>
+            <p class="text-slate-500 text-sm mt-2">Login to manage your orders and profile</p>
+        </div>
+
+        <form action="" method="POST">
+            {% csrf_token %}
+            <label class="text-xs font-black uppercase text-slate-400 ml-1">Mobile Number</label>
+            <input type="text" name="mobile" placeholder="Enter Mobile Number" required class="auth-input">
+            
+            <label class="text-xs font-black uppercase text-slate-400 ml-1">Password</label>
+            <input type="password" name="password" placeholder="Enter Password" required class="auth-input">
+            
+            <button type="submit" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl hover:bg-blue-700 transition-all shadow-lg uppercase tracking-widest mt-4">
+                Login
+            </button>
+        </form>
+
+        <div class="text-center mt-8 pt-6 border-t border-slate-100">
+            <p class="text-slate-500 text-sm">Don't have an account?</p>
+            <a href="/register" class="text-blue-600 font-black uppercase text-xs hover:underline mt-2 inline-block">Register Now</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
