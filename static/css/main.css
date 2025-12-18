@@ -1,0 +1,66 @@
+/* Custom Styles for Fast Copy */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.active-service-tab {
+    border-bottom: 4px solid #2563eb !important;
+    background-color: #eff6ff !important;
+    color: #2563eb !important;
+}
+
+.service-tab {
+    transition: all 0.3s ease;
+}
+
+@keyframes bounce-slow {
+    0%, 100% { transform: translateY(-5%); }
+    50% { transform: translateY(5%); }
+}
+
+.animate-bounce-slow {
+    animation: bounce-slow 4s infinite ease-in-out;
+}
+
+/* Service Header Transition */
+#form-header {
+    transition: background-color 0.7s ease;
+}
+
+/* Custom Scrollbar for Service Tabs */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Service Tab Styling */
+.service-tab {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-bottom: 4px solid transparent;
+}
+
+.service-tab:hover {
+    transform: translateY(-3px);
+    background-color: #f8fafc;
+}
+
+/* Active State - Managed by JS */
+.active-tab {
+    background-color: #f0f7ff !important;
+    border-bottom: 4px solid #2563eb !important;
+    color: #2563eb !important;
+}
+
+/* 3D Upload Box Effect */
+.upload-box {
+    transition: all 0.3s ease;
+    border: 3px dashed #e2e8f0;
+}
+
+.upload-box:hover {
+    border-color: #3b82f6;
+    background-color: #f1f5f9;
+    transform: scale(1.01);
+}
+
+/* Form Header Animation */
+#form-header-bg {
+    transition: background-color 0.6s ease-in-out;
+}
