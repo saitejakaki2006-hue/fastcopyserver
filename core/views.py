@@ -1,7 +1,10 @@
-from django.urls import path
-from . import views
+from django.shortcuts import render
+from .models import Service
 
-urlpatterns = [
-    path('', views.home, name='home'),
-    path('services/', views.services, name='services'),
-]
+def home(request):
+    services = Service.objects.all()
+    return render(request, 'core/index.html', {'services': services})
+
+def services_page(request):
+    services = Service.objects.all()
+    return render(request, 'core/services.html', {'services': services})
