@@ -2,171 +2,233 @@
 {% load static %}
 
 {% block content %}
-<section class="section-highlight py-24 px-6 overflow-hidden relative">
-    <div class="container mx-auto grid md:grid-cols-2 gap-12 items-center">
-        <div data-aos="fade-right">
-            <p class="text-blue-600 font-black uppercase tracking-[0.4em] text-[10px] mb-4">FastCopy Premium Hub</p>
-            <h1 class="text-5xl md:text-7xl font-black text-slate-900 leading-[0.9] mb-8 uppercase tracking-tighter italic">
-                Premium <span class="text-blue-600">Xerox Service</span> <br>Online Booking
-            </h1>
-            <p class="text-gray-600 text-lg mb-10 max-w-lg font-medium leading-relaxed">
-                Experience the fastest document printing and binding service. High quality results delivered directly to your doorstep with 3D precision.
+<div class="home-master-wrapper">
+    <section class="section-highlight py-20 py-md-24 px-4 px-md-6 overflow-hidden relative min-vh-75 d-flex align-items-center">
+        <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-600/10 blur-[120px] rounded-full pulse-blue"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-400/10 blur-[120px] rounded-full pulse-blue" style="animation-delay: 2s;"></div>
+
+        <div class="container mx-auto">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6 order-2 order-lg-1" data-aos="fade-right">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="w-12 h-[2px] bg-blue-600"></span>
+                        <p class="text-blue-600 font-black uppercase tracking-[0.4em] text-[10px] m-0">FastCopy Premium Hub</p>
+                    </div>
+                    <h1 class="text-4xl md:text-7xl font-black text-slate-900 leading-[1.1] mb-8 uppercase tracking-tighter italic">
+                        Fast, Reliable, and <span class="text-blue-600">Affordable</span> <br>
+                        <span class="text-slate-800"> Printing Services.</span>
+                    </h1>
+                    <p class="text-gray-600 text-lg mb-10 max-w-lg font-medium leading-relaxed opacity-80">
+                        Get professional printing, binding, and document services with instant pricing and quick turnaround times.
+                    </p>
+                    
+                    <div class="flex flex-wrap gap-3">
+                        <a href="{% url 'services' %}" class="btn-3d bg-blue-600 text-white px-8 py-3.5 rounded-full font-black text-[10px] hover:bg-blue-700 shadow-2xl transition-all inline-block tracking-widest no-underline">
+                            EXPLORE SERVICES <i class="fa-solid fa-arrow-right-long ml-2"></i>
+                        </a>
+                        <a href="#how-it-works" class="px-6 py-3.5 rounded-full font-black text-[10px] border-2 border-slate-200 text-slate-600 hover:bg-slate-50 transition-all tracking-widest no-underline">
+                            LEARN MORE
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6 order-1 order-lg-2" data-aos="zoom-in" data-aos-duration="1000">
+                    <div class="relative">
+                        <div class="absolute inset-0 bg-blue-600/5 blur-[100px] rounded-full"></div>
+                        <div id="heroCarousel" class="carousel slide carousel-fade hero-image-wrapper p-4" data-bs-ride="carousel">
+                            <div class="carousel-inner rounded-4 shadow-2xl">
+                                <div class="carousel-item active" data-bs-interval="4000">
+                                    <img src="{% static 'images/hero1.jpg' %}" class="d-block w-100 floating-3d" alt="Premium Printing">
+                                </div>
+                                <div class="carousel-item" data-bs-interval="4000">
+                                    <img src="{% static 'images/hero2.jpg' %}" class="d-block w-100 floating-3d" alt="Quality Binding">
+                                </div>
+                                <div class="carousel-item" data-bs-interval="4000">
+                                    <img src="{% static 'images/hero3.jpg' %}" class="d-block w-100 floating-3d" alt="Fast Documentation">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-white py-24 px-6 relative border-t border-slate-100">
+        <div class="container mx-auto">
+            <div class="text-center mb-20">
+                <p class="text-blue-600 font-black uppercase tracking-[0.5em] text-[10px] mb-3" data-aos="fade-up">Professional Solutions</p>
+                <h2 class="text-5xl font-black text-slate-900 mb-4 uppercase italic tracking-tighter" data-aos="fade-up" data-aos-delay="100">Our <span class="text-blue-600">Expertise</span></h2>
+                <div class="w-24 h-1.5 bg-blue-600 mx-auto rounded-full" data-aos="zoom-in" data-aos-delay="200"></div>
+            </div>
+            
+            <div class="row g-4 max-w-7xl mx-auto">
+                <div class="col-md-6 col-lg-4" data-aos="fade-up">
+                    <div class="unique-service-card group h-100">
+                        <div class="card-inner p-10 rounded-[3rem] bg-white text-center border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-500 h-100">
+                            <div class="icon-box w-20 h-20 bg-blue-600/10 text-blue-600 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-8 transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                <i class="fas fa-print"></i>
+                            </div>
+                            <h3 class="text-2xl font-black mb-3 text-slate-800 uppercase italic">Digital Printing</h3>
+                            <p class="text-gray-500 text-[10px] mb-8 font-bold uppercase tracking-widest leading-loose">High-Definition B&W and Color laser prints on premium paper.</p>
+                            <a href="{% url 'services' %}?s=Printing" class="btn-3d bg-slate-900 text-white w-full py-4 rounded-2xl font-black text-[10px] tracking-widest hover:bg-blue-600 transition no-underline">ORDER NOW</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="unique-service-card group h-100">
+                        <div class="card-inner p-10 rounded-[3rem] bg-white text-center border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-500 h-100">
+                            <div class="icon-box w-20 h-20 bg-purple-600/10 text-purple-600 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-8 transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                <i class="fas fa-book-open"></i>
+                            </div>
+                            <h3 class="text-2xl font-black mb-3 text-slate-800 uppercase italic">Spiral Binding</h3>
+                            <p class="text-gray-500 text-[10px] mb-8 font-bold uppercase tracking-widest leading-loose">Flexible and durable binding perfect for project reports and notes.</p>
+                            <a href="{% url 'services' %}?s=Spiral" class="btn-3d bg-slate-900 text-white w-full py-4 rounded-2xl font-black text-[10px] tracking-widest hover:bg-blue-600 transition no-underline">ORDER NOW</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="unique-service-card group h-100">
+                        <div class="card-inner p-10 rounded-[3rem] bg-white text-center border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-500 h-100">
+                            <div class="icon-box w-20 h-20 bg-pink-600/10 text-pink-600 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-8 transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <h3 class="text-2xl font-black mb-3 text-slate-800 uppercase italic">Soft Binding</h3>
+                            <p class="text-gray-500 text-[10px] mb-8 font-bold uppercase tracking-widest leading-loose">Premium glued binding with customized front-back covers.</p>
+                            <a href="{% url 'services' %}?s=Soft" class="btn-3d bg-slate-900 text-white w-full py-4 rounded-2xl font-black text-[10px] tracking-widest hover:bg-blue-600 transition no-underline">ORDER NOW</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-4" data-aos="fade-up">
+                    <div class="unique-service-card group h-100">
+                        <div class="card-inner p-10 rounded-[3rem] bg-white text-center border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-500 h-100">
+                            <div class="icon-box w-20 h-20 bg-orange-600/10 text-orange-600 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-8 transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                <i class="fas fa-sliders-h"></i>
+                            </div>
+                            <h3 class="text-2xl font-black mb-3 text-slate-800 uppercase italic">Custom Printing</h3>
+                            <p class="text-gray-500 text-[10px] mb-8 font-bold uppercase tracking-widest leading-loose">Save cost with 4-in-1, 8-in-1, and 9-in-1 custom layouts.</p>
+                            <a href="{% url 'services' %}?s=Custom" class="btn-3d bg-slate-900 text-white w-full py-4 rounded-2xl font-black text-[10px] tracking-widest hover:bg-blue-600 transition no-underline">ORDER NOW</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="unique-service-card group h-100 opacity-75 grayscale-0">
+                        <div class="card-inner p-10 rounded-[3rem] bg-white text-center border-2 border-slate-100 shadow-lg h-100">
+                            <div class="icon-box w-20 h-20 bg-slate-100 text-slate-400 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-8">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <h3 class="text-2xl font-black mb-3 text-slate-400 uppercase italic">Thesis Binding</h3>
+                            <p class="text-slate-400 text-[10px] mb-8 font-bold uppercase tracking-widest leading-loose">University standard academic binding for graduating students.</p>
+                            <button disabled class="btn-3d bg-slate-200 text-slate-500 w-full py-4 rounded-2xl font-black text-[10px] tracking-widest border-0 cursor-not-allowed">COMING SOON</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="unique-service-card group h-100 opacity-75 grayscale-0">
+                        <div class="card-inner p-10 rounded-[3rem] bg-white text-center border-2 border-slate-100 shadow-lg h-100">
+                            <div class="icon-box w-20 h-20 bg-slate-100 text-slate-400 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-8">
+                                <i class="fas fa-image"></i>
+                            </div>
+                            <h3 class="text-2xl font-black mb-3 text-slate-400 uppercase italic">Photo Frames</h3>
+                            <p class="text-slate-400 text-[10px] mb-8 font-bold uppercase tracking-widest leading-loose">Preserve your memories with high-quality gloss photo framing.</p>
+                            <button disabled class="btn-3d bg-slate-200 text-slate-500 w-full py-4 rounded-2xl font-black text-[10px] tracking-widest border-0 cursor-not-allowed">COMING SOON</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="py-24 px-6 border-t border-b bg-slate-50">
+        <div class="container mx-auto text-center">
+            <h2 class="text-4xl font-black mb-4 uppercase italic tracking-tighter text-slate-900" data-aos="fade-up">3-Step Process</h2>
+            <p class="text-blue-600 mb-20 font-black uppercase tracking-[0.3em] text-[10px]" data-aos="fade-up">Effortless ordering from your campus</p>
+            
+            <div class="row g-5 relative">
+                <div class="hidden lg:block absolute top-1/4 left-0 w-full h-0.5 bg-slate-200 -z-10"></div>
+                
+                <div class="col-md-4" data-aos="fade-right">
+                    <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center text-3xl text-blue-600 mx-auto mb-8 shadow-xl border-4 border-slate-50">
+                        <i class="fas fa-file-upload"></i>
+                    </div>
+                    <h4 class="text-2xl font-black mb-4 uppercase italic">1. Upload File</h4>
+                    <p class="text-gray-500 text-sm font-medium leading-relaxed px-4">Upload your PDF or Word document securely to our encrypted servers.</p>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="150">
+                    <div class="w-20 h-20 bg-slate-900 rounded-full flex items-center justify-center text-3xl text-white mx-auto mb-8 shadow-xl border-4 border-slate-50">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <h4 class="text-2xl font-black mb-4 uppercase italic">2. Configure</h4>
+                    <p class="text-gray-500 text-sm font-medium leading-relaxed px-4">Select B&W or Color, set binding styles and choose your college location.</p>
+                </div>
+                <div class="col-md-4" data-aos="fade-left" data-aos-delay="300">
+                    <div class="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center text-3xl text-white mx-auto mb-8 shadow-xl border-4 border-slate-50">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h4 class="text-2xl font-black mb-4 uppercase italic">3. Delivery</h4>
+                    <p class="text-gray-500 text-sm font-medium leading-relaxed px-4">Complete payment and get your documents delivered to your college branch.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="bg-white py-24 px-6">
+        <div class="container mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-black mb-4 uppercase italic tracking-tighter text-slate-900" data-aos="fade-up">The FastCopy Promise</h2>
+                <p class="text-blue-600 font-black uppercase tracking-[0.3em] text-[10px]" data-aos="fade-up">Setting the standard in college documentation</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-sm-6 col-lg-3" data-aos="zoom-in">
+                    <div class="trust-card text-center p-10 border border-slate-100 rounded-[2.5rem] bg-slate-50 hover:bg-white hover:shadow-2xl transition-all duration-300">
+                        <div class="text-yellow-500 text-4xl mb-6"><i class="fas fa-award"></i></div>
+                        <h4 class="font-black text-slate-800 uppercase italic mb-2">Grade-A Quality</h4>
+                        <p class="text-[9px] text-gray-400 font-black uppercase tracking-widest m-0">Premium Paper & Ink</p>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3" data-aos="zoom-in" data-aos-delay="100">
+                    <div class="trust-card text-center p-10 border border-slate-100 rounded-[2.5rem] bg-slate-50 hover:bg-white hover:shadow-2xl transition-all duration-300">
+                        <div class="text-blue-500 text-4xl mb-6"><i class="fas fa-shipping-fast"></i></div>
+                        <h4 class="font-black text-slate-800 uppercase italic mb-2">Same Day Prep</h4>
+                        <p class="text-[9px] text-gray-400 font-black uppercase tracking-widest m-0">Fast Local Logistics</p>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3" data-aos="zoom-in" data-aos-delay="200">
+                    <div class="trust-card text-center p-10 border border-slate-100 rounded-[2.5rem] bg-slate-50 hover:bg-white hover:shadow-2xl transition-all duration-300">
+                        <div class="text-green-500 text-4xl mb-6"><i class="fas fa-shield-alt"></i></div>
+                        <h4 class="font-black text-slate-800 uppercase italic mb-2">Safe Data</h4>
+                        <p class="text-[9px] text-gray-400 font-black uppercase tracking-widest m-0">Auto-delete file logic</p>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3" data-aos="zoom-in" data-aos-delay="300">
+                    <div class="trust-card text-center p-10 border border-slate-100 rounded-[2.5rem] bg-slate-50 hover:bg-white hover:shadow-2xl transition-all duration-300">
+                        <div class="text-purple-500 text-4xl mb-6"><i class="fas fa-headset"></i></div>
+                        <h4 class="font-black text-slate-800 uppercase italic mb-2">Priority Desk</h4>
+                        <p class="text-[9px] text-gray-400 font-black uppercase tracking-widest m-0">WhatsApp Support Active</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-24 text-center relative overflow-hidden rounded-[4rem] mx-4 md:mx-6 mb-12" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+        <div class="absolute top-0 right-0 w-96 h-96 bg-blue-600/20 blur-[120px] rounded-full"></div>
+        <div class="container mx-auto px-6 relative z-10" data-aos="flip-up">
+            <h2 class="text-4xl md:text-6xl font-black mb-8 uppercase italic tracking-tighter text-white">Efficiency is just <br>a click away</h2>
+            <p class="text-blue-200/70 text-lg mb-12 max-w-2xl mx-auto font-medium leading-relaxed">
+                Join thousands of students who trust us for their project reports and documentation.
             </p>
-            <div class="flex gap-4">
-                <a href="{% url 'services' %}" class="btn-3d bg-blue-600 text-white px-10 py-5 rounded-full font-black text-xs hover:bg-blue-700 shadow-2xl transition-all inline-block tracking-widest">
-                    ORDER NOW
+            <div class="flex justify-center gap-4">
+                <a href="{% url 'services' %}" class="btn-3d bg-white text-blue-600 px-12 py-5 rounded-full font-black text-[10px] hover:bg-blue-50 shadow-2xl transition-all uppercase tracking-[0.3em] no-underline">
+                    Start Your Order
                 </a>
             </div>
         </div>
-        <div class="relative" data-aos="zoom-in">
-            <div class="absolute inset-0 bg-blue-600/10 blur-[100px] rounded-full"></div>
-            <img src="https://cdn-icons-png.flaticon.com/512/2900/2900213.png" class="floating-3d w-full max-w-md mx-auto relative z-10" alt="3D Printer">
-        </div>
-    </div>
-</section>
-
-<section class="bg-white py-24 px-6 relative">
-    <div class="container mx-auto">
-        <div class="text-center mb-20">
-            <h2 class="text-5xl font-black text-slate-900 mb-4 uppercase italic tracking-tighter" data-aos="fade-up">Our Services</h2>
-            <p class="text-blue-600 text-center font-black uppercase tracking-[0.5em] text-[10px]" data-aos="fade-up">Everything you need in one place</p>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 max-w-6xl mx-auto">
-            
-            <div class="unique-service-card group" data-aos="fade-up">
-                <div class="card-inner p-10 rounded-[3rem] bg-white text-center border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-300 outline outline-4 outline-slate-50">
-                    <div class="icon-box w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white text-3xl mx-auto mb-8 shadow-md">
-                        <i class="fas fa-print"></i>
-                    </div>
-                    <h3 class="text-2xl font-black mb-3 text-slate-800 uppercase italic">Printing</h3>
-                    <p class="text-gray-500 text-xs mb-10 font-bold uppercase tracking-widest">B&W and Color Prints</p>
-                    <a href="{% url 'services' %}" class="btn-3d bg-slate-900 text-white px-8 py-4 rounded-2xl font-black text-[10px] tracking-widest hover:bg-blue-600 transition shadow-lg inline-block uppercase">Order Now</a>
-                </div>
-            </div>
-
-            <div class="unique-service-card group" data-aos="fade-up" data-aos-delay="100">
-                <div class="card-inner p-10 rounded-[3rem] bg-white text-center border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-300 outline outline-4 outline-slate-50">
-                    <div class="icon-box w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-white text-3xl mx-auto mb-8 shadow-md">
-                        <i class="fas fa-book-open"></i>
-                    </div>
-                    <h3 class="text-2xl font-black mb-3 text-slate-800 uppercase italic">Spiral Binding</h3>
-                    <p class="text-gray-500 text-xs mb-10 font-bold uppercase tracking-widest">Professional document binding</p>
-                    <a href="{% url 'services' %}" class="btn-3d bg-slate-900 text-white px-8 py-4 rounded-2xl font-black text-[10px] tracking-widest hover:bg-blue-600 transition shadow-lg inline-block uppercase">Order Now</a>
-                </div>
-            </div>
-
-            <div class="unique-service-card group" data-aos="fade-up" data-aos-delay="200">
-                <div class="card-inner p-10 rounded-[3rem] bg-white text-center border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-300 outline outline-4 outline-slate-50">
-                    <div class="icon-box w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white text-3xl mx-auto mb-8 shadow-md">
-                        <i class="fas fa-book"></i>
-                    </div>
-                    <h3 class="text-2xl font-black mb-3 text-slate-800 uppercase italic">Soft Binding</h3>
-                    <p class="text-gray-500 text-xs mb-10 font-bold uppercase tracking-widest">Durable soft covers</p>
-                    <a href="{% url 'services' %}" class="btn-3d bg-slate-900 text-white px-8 py-4 rounded-2xl font-black text-[10px] tracking-widest hover:bg-blue-600 transition shadow-lg inline-block uppercase">Order Now</a>
-                </div>
-            </div>
-
-            <div class="unique-service-card group" data-aos="fade-up">
-                <div class="card-inner p-10 rounded-[3rem] bg-white text-center border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-300 outline outline-4 outline-slate-50">
-                    <div class="icon-box w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-white text-3xl mx-auto mb-8 shadow-md">
-                        <i class="fas fa-sliders-h"></i>
-                    </div>
-                    <h3 class="text-2xl font-black mb-3 text-slate-800 uppercase italic">Custom Printing</h3>
-                    <p class="text-gray-500 text-xs mb-10 font-bold uppercase tracking-widest">Tailored to your needs</p>
-                    <a href="{% url 'services' %}" class="btn-3d bg-slate-900 text-white px-8 py-4 rounded-2xl font-black text-[10px] tracking-widest hover:bg-blue-600 transition shadow-lg inline-block uppercase">Order Now</a>
-                </div>
-            </div>
-
-            <div class="unique-service-card group" data-aos="fade-up" data-aos-delay="100">
-                <div class="card-inner p-10 rounded-[3rem] bg-white text-center border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-300 outline outline-4 outline-slate-50">
-                    <div class="icon-box w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white text-3xl mx-auto mb-8 shadow-md">
-                        <i class="fas fa-graduation-cap"></i>
-                    </div>
-                    <h3 class="text-2xl font-black mb-3 text-slate-800 uppercase italic">Thesis Binding</h3>
-                    <p class="text-gray-500 text-xs mb-10 font-bold uppercase tracking-widest">Academic standard binding</p>
-                    <a href="{% url 'services' %}" class="btn-3d bg-slate-900 text-white px-8 py-4 rounded-2xl font-black text-[10px] tracking-widest hover:bg-blue-600 transition shadow-lg inline-block uppercase">Order Now</a>
-                </div>
-            </div>
-
-            <div class="unique-service-card group" data-aos="fade-up" data-aos-delay="200">
-                <div class="card-inner p-10 rounded-[3rem] bg-white text-center border-2 border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-300 outline outline-4 outline-slate-50">
-                    <div class="icon-box w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-white text-3xl mx-auto mb-8 shadow-md">
-                        <i class="fas fa-image"></i>
-                    </div>
-                    <h3 class="text-2xl font-black mb-3 text-slate-800 uppercase italic">Photo Frames</h3>
-                    <p class="text-gray-500 text-xs mb-10 font-bold uppercase tracking-widest">Preserve your memories</p>
-                    <a href="{% url 'services' %}" class="btn-3d bg-slate-900 text-white px-8 py-4 rounded-2xl font-black text-[10px] tracking-widest hover:bg-blue-600 transition shadow-lg inline-block uppercase">Order Now</a>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="section-highlight py-24 px-6 border-t border-b bg-slate-50/50">
-    <div class="container mx-auto text-center">
-        <h2 class="text-4xl font-black mb-4 uppercase italic tracking-tighter text-slate-900" data-aos="fade-up">How It Works</h2>
-        <p class="text-blue-600 mb-20 font-black uppercase tracking-[0.3em] text-[10px]" data-aos="fade-up">Simple 3-step process to get your order</p>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-16">
-            <div data-aos="fade-up">
-                <div class="text-6xl text-blue-600 mb-8 transition-transform hover:scale-110 duration-300"><i class="fas fa-file-upload"></i></div>
-                <h4 class="text-2xl font-black mb-4 uppercase italic">1. Upload File</h4>
-                <p class="text-gray-500 text-sm font-medium">Upload your PDF or document to our secure portal.</p>
-            </div>
-            <div data-aos="fade-up" data-aos-delay="150">
-                <div class="text-6xl text-slate-900 mb-8 transition-transform hover:scale-110 duration-300"><i class="fas fa-tasks"></i></div>
-                <h4 class="text-2xl font-black mb-4 uppercase italic">2. Choose Options</h4>
-                <p class="text-gray-500 text-sm font-medium">Pick your service, color, binding type and copies.</p>
-            </div>
-            <div data-aos="fade-up" data-aos-delay="300">
-                <div class="text-6xl text-blue-600 mb-8 transition-transform hover:scale-110 duration-300"><i class="fas fa-check-circle"></i></div>
-                <h4 class="text-2xl font-black mb-4 uppercase italic">3. Place Order</h4>
-                <p class="text-gray-500 text-sm font-medium">Confirm your order and get doorstep delivery.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="bg-white py-24 px-6">
-    <div class="container mx-auto">
-        <div class="text-center mb-16">
-            <h2 class="text-4xl font-black mb-4 uppercase italic tracking-tighter text-slate-900" data-aos="fade-up">Why Choose Us?</h2>
-            <p class="text-blue-600 font-black uppercase tracking-[0.3em] text-[10px]" data-aos="fade-up">Best in class quality and service</p>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div class="text-center p-10 border border-slate-50 rounded-[2.5rem] bg-slate-50 hover:shadow-2xl transition-all" data-aos="zoom-in">
-                <i class="fas fa-award text-4xl text-yellow-500 mb-6"></i>
-                <h4 class="font-black text-slate-800 uppercase italic">Best Quality</h4>
-                <p class="text-[10px] text-gray-400 mt-2 font-black uppercase tracking-widest">Premium Paper & Ink</p>
-            </div>
-            <div class="text-center p-10 border border-slate-50 rounded-[2.5rem] bg-slate-50 hover:shadow-2xl transition-all" data-aos="zoom-in" data-aos-delay="100">
-                <i class="fas fa-shipping-fast text-4xl text-blue-500 mb-6"></i>
-                <h4 class="font-black text-slate-800 uppercase italic">Fast Delivery</h4>
-                <p class="text-[10px] text-gray-400 mt-2 font-black uppercase tracking-widest">24h Turnaround</p>
-            </div>
-            <div class="text-center p-10 border border-slate-50 rounded-[2.5rem] bg-slate-50 hover:shadow-2xl transition-all" data-aos="zoom-in" data-aos-delay="200">
-                <i class="fas fa-shield-alt text-4xl text-green-500 mb-6"></i>
-                <h4 class="font-black text-slate-800 uppercase italic">Secure</h4>
-                <p class="text-[10px] text-gray-400 mt-2 font-black uppercase tracking-widest">Privacy Protection</p>
-            </div>
-            <div class="text-center p-10 border border-slate-50 rounded-[2.5rem] bg-slate-50 hover:shadow-2xl transition-all" data-aos="zoom-in" data-aos-delay="300">
-                <i class="fas fa-headset text-4xl text-purple-500 mb-6"></i>
-                <h4 class="font-black text-slate-800 uppercase italic">24/7 Support</h4>
-                <p class="text-[10px] text-gray-400 mt-2 font-black uppercase tracking-widest">Always here for you</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="bg-slate-900 py-24 text-center relative overflow-hidden rounded-[4rem] mx-6 mb-12">
-    <div class="absolute inset-0 bg-blue-600/5 blur-[100px]"></div>
-    <div class="container mx-auto px-6 relative z-10" data-aos="flip-up">
-        <h2 class="text-5xl font-black mb-8 uppercase italic tracking-tighter text-white">Ready to get started?</h2>
-        <p class="text-blue-200 text-lg mb-12 max-w-xl mx-auto font-medium">Upload your document now and get it printed today with premium quality.</p>
-        <a href="{% url 'services' %}" class="btn-3d bg-white text-blue-600 px-14 py-6 rounded-full font-black text-xs hover:bg-slate-100 shadow-2xl transition-all uppercase tracking-[0.3em]">
-            Start Your Order
-        </a>
-    </div>
-</section>
+    </section>
+</div>
 {% endblock %}

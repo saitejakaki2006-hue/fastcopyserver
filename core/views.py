@@ -115,6 +115,7 @@ def remove_from_cart(request, item_id):
 def add_to_cart(request):
     if request.method == "POST":
         item = {'service_name': request.POST.get('service_name'), 'total_price': request.POST.get('total_price_hidden')}
+        
         cart = request.session.get('cart', [])
         cart.append(item)
         request.session['cart'] = cart
@@ -122,28 +123,46 @@ def add_to_cart(request):
         return JsonResponse({'success': True})
     return JsonResponse({'success': False})
 
-@login_required(login_url='login')
+
+
+@login_required
 def order_now(request):
-    """Saves the order directly from the service page and redirects to cart."""
     if request.method == "POST":
-        Order.objects.create(
-            user=request.user,
-            service_name=request.POST.get('service_name'),
-            total_price=request.POST.get('total_price_hidden', 0),
-            status='In Progress'
-        )
-        return redirect('cart')
+        # ... your existing logic to handle the order creation ...
+        # Ensure total_price is converted to int to match database expectation
+        total_price = int(request.POST.get('total_price_hidden', 0))
+        
+        # ... logic to save order ...
+        
+        # FINAL REDIRECT TO HOME PAGE
+        return redirect('home') 
     return redirect('services')
 
 
 @login_required(login_url='login')
 def order_all(request):
-    cart_items = request.session.get('cart', [])
-    for item in cart_items:
-        Order.objects.create(user=request.user, service_name=item['service_name'], total_price=item['total_price'])
-    request.session['cart'] = []
-    request.session.modified = True
-    return redirect('profile')
+    if request.method == "POST":
+        cart_items = request.session.get('cart', [])
+        
+        if not cart_items:
+            return redirect('cart')
+
+        for item in cart_items:
+            # The conversion to float fixes the ValueError
+            price_as_number = float(item.get('total_price', 0))
+            
+            Order.objects.create(
+                user=request.user,
+                service_name=item.get('service_name', 'Printing Service'),
+                total_price=price_as_number,
+                status='Pending'
+            )
+
+        # Clear the cart after orders are created
+        request.session['cart'] = []
+        return redirect('home') # Or a success page
+        
+    return redirect('cart')
 
 def calculate_pages(request):
     if request.method == 'POST' and request.FILES.get('document'):
