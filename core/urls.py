@@ -20,6 +20,14 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
     path('logout/', views.logout_view, name='logout'),
     path('profile/', views.profile_view, name='profile'),
-    path('edit-profile/', views.edit_profile, name='edit_profile'),
+    
+    # UPDATED: Profile Edit URL
+    # Using 'profile/edit/' for better hierarchical structure
+    path('profile/edit/', views.edit_profile, name='edit_profile'),    
+    
     path('history/', views.history_view, name='history'),
+    
+    # Legal & Compliance
+    path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
+    path('terms-conditions/', views.terms_conditions, name='terms_conditions'),
 ]

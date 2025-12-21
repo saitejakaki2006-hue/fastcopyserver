@@ -1,64 +1,201 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block content %}
-<div class="container mx-auto px-6 py-12 max-w-4xl" data-aos="fade-up">
-    
-    <div class="bg-white rounded-[3rem] shadow-2xl p-10 flex flex-wrap justify-between items-center mb-10 border-b-[12px] border-blue-600">
-        <div class="flex items-center gap-6">
-            <div class="w-20 h-20 bg-slate-900 rounded-3xl flex items-center justify-center text-white text-3xl shadow-xl rotate-3"><i class="fas fa-user-circle"></i></div>
-            <div>
-                <h1 class="text-4xl font-black text-slate-800 uppercase italic">Hi, {{ user.first_name|default:user.username }}</h1>
-                <p class="text-blue-600 font-bold uppercase text-[10px] tracking-widest"><i class="fas fa-phone mr-2"></i>{{ profile.mobile }}</p>
+<style>
+    /* --- 📱 MOBILE-FIRST RESPONSIVE DESIGN --- */
+    @media (max-width: 991px) {
+        .profile-section {
+            padding-top: 10px !important;
+        }
+        /* Ensure 3D cards stack with balanced spacing */
+        .row.g-5 {
+            --bs-gutter-y: 1.5rem;
+        }
+        /* Typography scaling for mobile readability */
+        h2 { font-size: 1.6rem !important; }
+        .text-xl { font-size: 1.1rem !important; }
+
+        /* Modern Mobile Table (Card-Style) */
+        .table-responsive {
+            border: none !important;
+        }
+        .table thead {
+            display: none; /* Hide headers on mobile */
+        }
+        .table tbody tr {
+            display: block;
+            background: rgba(248, 250, 252, 0.5);
+            border: 1px solid #e2e8f0;
+            border-radius: 1.2rem;
+            margin-bottom: 1rem;
+            padding: 12px;
+        }
+        .table tbody td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 5px !important;
+            border: none !important;
+            font-size: 11px !important;
+        }
+        /* Inject labels for mobile card view */
+        .table tbody td::before {
+            content: attr(data-label);
+            font-size: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #94a3b8;
+            font-weight: 900;
+        }
+    }
+
+    /* Desktop Adjustments */
+    @media (min-width: 992px) {
+        .sticky-sidebar {
+            position: sticky;
+            top: 120px;
+        }
+    }
+</style>
+
+<section class="profile-section relative overflow-hidden py-10 md:py-24 min-h-screen">
+    <div class="absolute top-20 right-0 w-64 md:w-96 h-64 md:h-96 bg-blue-600/10 floating-blob rounded-full"></div>
+    <div class="absolute bottom-10 left-0 w-64 md:w-80 h-64 md:h-80 bg-purple-600/5 floating-blob rounded-full" style="animation-delay: -3s;"></div>
+
+    <div class="container mx-auto px-4 relative z-10">
+        <div class="row g-5">
+            
+            <div class="col-lg-4" data-aos="fade-right">
+                <div class="sticky-sidebar bg-white/80 backdrop-blur-xl border border-slate-200 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl text-center">
+                    <div class="relative inline-block mb-6">
+                        <div class="w-24 h-24 md:w-32 md:h-32 bg-blue-600 rounded-full flex items-center justify-center text-white text-3xl md:text-4xl font-black italic shadow-2xl shadow-blue-500/40">
+                            {{ request.user.first_name|slice:":1"|upper }}
+                        </div>
+                        <button data-bs-toggle="modal" data-bs-target="#editProfileModal" class="absolute bottom-0 right-0 w-9 h-9 md:w-10 md:h-10 bg-slate-900 text-white rounded-full flex items-center justify-center border-4 border-white hover:scale-110 transition-transform shadow-lg">
+                            <i class="fa-solid fa-pen text-[10px]"></i>
+                        </button>
+                    </div>
+                    
+                    <h2 class="font-black italic tracking-tighter text-slate-900 mb-1 user-name-display">{{ request.user.first_name }}</h2>
+                    <p class="text-blue-600 font-black text-[9px] uppercase tracking-widest mb-6">Premium Student Hub</p>
+                    
+                    <div class="space-y-3 text-start">
+                        <div class="p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
+                            <span class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Mobile Access</span>
+                            <span class="text-sm font-bold text-slate-700" id="sidebar-mobile-display">+91 {{ profile.mobile }}</span>
+                        </div>
+                        <div class="p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
+                            <span class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Campus Location</span>
+                            <span class="text-xs md:text-sm font-bold text-slate-700" id="sidebar-address-display">{{ profile.address }}</span>
+                        </div>
+                    </div>
+
+                    <a href="{% url 'logout' %}" class="btn-3d w-full mt-6 bg-red-50 text-red-600 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest no-underline border border-red-100">
+                        Secure Logout
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                {% if tracking %}
+                <div class="bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 text-white shadow-2xl mb-8 relative overflow-hidden" data-aos="fade-up">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 blur-3xl"></div>
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-black italic tracking-tight">Active Tracking</h3>
+                            <span class="px-4 py-1.5 bg-blue-600 rounded-full text-[9px] font-black uppercase tracking-widest">In {{ tracking.status }}</span>
+                        </div>
+                        
+                        <div class="p-4 md:p-5 bg-white/5 border border-white/10 rounded-2xl md:rounded-3xl flex flex-col md:flex-row items-center gap-4 text-center md:text-start">
+                            <div class="w-14 h-14 bg-blue-600/20 rounded-2xl flex items-center justify-center text-blue-500 text-xl">
+                                <i class="fa-solid fa-print fa-spin-slow"></i>
+                            </div>
+                            <div class="flex-grow">
+                                <h4 class="text-md font-black italic mb-0">{{ tracking.service_name }}</h4>
+                                <p class="text-slate-500 text-[9px] font-bold uppercase tracking-widest m-0">Tracking: #FC-{{ tracking.id }}</p>
+                            </div>
+                            <div class="w-full md:w-auto pt-3 md:pt-0">
+                                <p class="text-xl font-black italic text-blue-500">₹{{ tracking.total_price }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="bg-white border border-slate-200 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 shadow-sm" data-aos="fade-up" data-aos-delay="100">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-black italic text-slate-900">Orders Log</h3>
+                        <a href="{% url 'history' %}" class="text-[9px] font-black text-blue-600 uppercase no-underline">See Full History →</a>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-borderless align-middle m-0">
+                            <thead class="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50">
+                                <tr>
+                                    <th>Service Hub</th>
+                                    <th>Date</th>
+                                    <th>Bill</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-xs font-bold text-slate-600">
+                                {% for order in recent_bookings %}
+                                <tr>
+                                    <td class="py-3 md:py-4" data-label="Service">{{ order.service_name }}</td>
+                                    <td class="py-3 md:py-4 text-slate-400" data-label="Date">{{ order.created_at|date:"d M, Y" }}</td>
+                                    <td class="py-3 md:py-4 font-black" data-label="Bill">₹{{ order.total_price }}</td>
+                                    <td class="py-3 md:py-4" data-label="Status">
+                                        <span class="px-3 py-1 bg-slate-100 rounded-lg text-[8px] uppercase font-black text-slate-500">{{ order.status }}</span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-10 text-slate-400 italic">No transactions found in your history.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
-        <button onclick="toggleModal('editModal')" class="px-8 py-4 bg-slate-900 text-white rounded-full font-black uppercase text-[10px] tracking-widest hover:scale-105 shadow-xl">Edit Profile</button>
     </div>
+</section>
 
-    <div class="mb-12">
-        <h3 class="text-[10px] font-black uppercase text-slate-400 mb-6 tracking-[0.4em]">Current Status</h3>
-        {% if tracking %}
-        <div class="bg-slate-900 rounded-[3.5rem] p-12 text-white shadow-2xl">
-            <div class="flex justify-between items-center">
-                <div class="text-center">
-                    <div class="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center mb-2"><i class="fas fa-sync fa-spin"></i></div>
-                    <p class="text-[8px] font-black uppercase">In Progress</p>
-                </div>
-                <div class="h-1 flex-1 bg-slate-800 mx-4"><div class="h-full bg-blue-600" style="width:50%"></div></div>
-                <div class="text-center">
-                    <div class="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center mb-2"><i class="fas fa-check"></i></div>
-                    <p class="text-[8px] font-black uppercase text-slate-500">Ready</p>
-                </div>
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-[2rem] md:rounded-[2.5rem] border-none shadow-2xl overflow-hidden">
+            <div class="modal-header border-none p-6 pb-0">
+                <h4 class="text-2xl font-black italic tracking-tight">Sync <span class="text-blue-600">Details</span></h4>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-        </div>
-        {% else %}
-        <div class="p-10 border-2 border-dashed rounded-[3rem] text-center text-slate-400 uppercase font-black text-xs">No active orders</div>
-        {% endif %}
-    </div>
+            <div class="modal-body p-6">
+                <form onsubmit="handleProfileUpdate(event, '{% url 'edit_profile' %}')">
+                    {% csrf_token %}
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2 ms-1">Student Full Name</label>
+                            <input type="text" name="name" value="{{ request.user.first_name }}" class="custom-input bg-slate-50 border-slate-200" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2 ms-1">Registered Mobile</label>
+                            <input type="text" name="mobile" value="{{ profile.mobile }}" class="custom-input bg-slate-50 border-slate-200" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2 ms-1">Campus Address</label>
+                            <textarea name="address" rows="3" class="custom-input bg-slate-50 border-slate-200 pt-3" required>{{ profile.address }}</textarea>
+                        </div>
 
-    <div class="text-center mt-20">
-        <button onclick="confirmLogout()" class="px-12 py-5 bg-red-50 text-red-600 rounded-full font-black uppercase text-[10px] tracking-widest hover:bg-red-600 hover:text-white transition-all shadow-xl">
-            <i class="fas fa-power-off mr-2"></i> Logout Session
-        </button>
-    </div>
-
-    <div id="editModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6">
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onclick="toggleModal('editModal')"></div>
-        <div class="bg-white w-full max-w-lg rounded-[3rem] shadow-2xl relative z-10 p-10 border-t-[12px] border-blue-600">
-            <h2 class="text-2xl font-black uppercase italic mb-8">Edit <span class="text-blue-600">Profile</span></h2>
-            <form action="{% url 'edit_profile' %}" method="POST" class="space-y-4">
-                {% csrf_token %}
-                <input type="text" name="name" value="{{ user.first_name }}" placeholder="Full Name" class="w-full p-4 bg-slate-50 rounded-2xl outline-none ring-1 ring-slate-100 focus:ring-2 focus:ring-blue-600 font-bold">
-                <input type="text" name="mobile" value="{{ profile.mobile }}" placeholder="Mobile" class="w-full p-4 bg-slate-50 rounded-2xl outline-none ring-1 ring-slate-100 focus:ring-2 focus:ring-blue-600 font-bold">
-                <textarea name="address" placeholder="Address" class="w-full p-4 bg-slate-50 rounded-2xl outline-none ring-1 ring-slate-100 focus:ring-2 focus:ring-blue-600 font-bold h-32">{{ profile.address }}</textarea>
-                <button type="submit" class="w-full py-5 bg-slate-900 text-white rounded-full font-black uppercase text-[10px] tracking-widest">Save Changes</button>
-            </form>
+                        <button type="submit" class="btn-3d w-full bg-blue-600 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest mt-4 shadow-xl shadow-blue-500/30">
+                            Update Account Now
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
-
-<script>
-function toggleModal(id) { document.getElementById(id).classList.toggle('hidden'); }
-function confirmLogout() {
-    if(confirm("Logout and return to Home page?")) { window.location.href = "{% url 'logout' %}"; }
-}
-</script>
 {% endblock %}

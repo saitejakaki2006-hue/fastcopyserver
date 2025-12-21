@@ -1,189 +1,237 @@
-/* --- 1. FONTS & ROOT VARIABLES --- */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+/* --- 🎨 FASTCOPY PREMIUM DESIGN SYSTEM --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
 
 :root {
-    --blue-600: #0d6efd;
-    --blue-glow: rgba(13, 110, 253, 0.25);
-    --slate-900: #0f172a;
-    --slate-800: #1e293b;
-    --slate-500: #64748b;
-    --slate-50: #f8fafc;
-    --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --primary-blue: #2563eb;
+    --primary-blue-glow: rgba(37, 99, 235, 0.4);
+    --deep-slate: #0f172a;
+    --footer-bg: #0f172a;
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08);
 }
 
-/* --- 2. GLOBAL RESET --- */
+/* --- 🧱 CORE RESET --- */
+* {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    background-color: var(--slate-50);
-    color: var(--slate-900);
-    overflow-x: hidden;
     scroll-behavior: smooth;
+    overflow-x: hidden;
+    background-color: #f8fafc;
+    color: #0f172a;
+    display: flex;
+    flex-col: column;
+    min-height: 100vh;
 }
 
-.fw-black { font-weight: 900; }
-.italic { font-style: italic; }
+main {
+    flex-grow: 1;
+}
 
-/* --- 3. 🧭 NAVIGATION STYLES --- */
+/* --- 🧭 NAVIGATION (GLASSMORPHISM) --- */
 .glass-nav {
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--glass-bg);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    height: 72px;
-    z-index: 1050;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+    transition: all 0.4s ease;
 }
 
 .nav-link-custom {
-    font-size: 0.75rem;
+    font-size: 11px;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.15em;
-    color: var(--slate-500) !important;
-    transition: var(--transition);
-    text-decoration: none;
+    color: #475569;
+    text-decoration: none !important;
+    transition: all 0.3s ease;
 }
 
-.nav-link-custom:hover, .active-link {
-    color: var(--blue-600) !important;
-}
-
-/* User Profile Pill Logic */
-.user-profile-pill {
-    transition: var(--transition);
-    cursor: pointer;
-    background: #ffffff;
-    border: 1px solid #e2e8f0 !important;
-}
-
-.user-profile-pill:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+.nav-link-custom:hover {
+    color: var(--primary-blue);
     transform: translateY(-1px);
 }
 
-.user-avatar-circle {
-    width: 28px;
-    height: 28px;
-    background-color: var(--blue-600);
-    color: white;
-}
 
-/* --- 4. 🏠 HOME MASTER WRAPPER --- */
-.home-master-wrapper .section-highlight {
-    background: radial-gradient(circle at top left, rgba(13, 110, 253, 0.03), transparent);
-}
 
-.hero-image-wrapper {
-    transition: var(--transition);
-}
-
-.floating-3d {
-    animation: float 6s ease-in-out infinite;
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0) rotate(0); }
-    50% { transform: translateY(-20px) rotate(2deg); }
-}
-
-/* --- 5. 🛠️ UNIQUE SERVICE CARDS --- */
-.unique-service-card {
-    perspective: 1500px;
-}
-
-.card-inner {
-    transform-style: preserve-3d;
-    background: white;
-    transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.unique-service-card:hover .card-inner {
-    transform: translateY(-20px) rotateX(8deg) rotateY(-4deg);
-    border-color: var(--blue-600) !important;
-}
-
-/* --- 6. MASTER 3D BUTTONS --- */
+/* --- 🚀 3D BUTTONS & CARDS --- */
 .btn-3d {
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    transition: var(--transition);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 10px 20px -5px var(--blue-glow);
+    cursor: pointer;
+    text-decoration: none !important;
 }
 
 .btn-3d:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 20px 40px -10px var(--blue-glow);
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 24px -8px var(--primary-blue-glow) !important;
 }
 
-/* --- 7. ANIMATIONS --- */
-.pulse-blue {
-    animation: pulse 4s infinite;
+.hover-lift {
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
-@keyframes pulse {
-    0% { opacity: 0.05; transform: scale(1); }
-    50% { opacity: 0.15; transform: scale(1.1); }
-    100% { opacity: 0.05; transform: scale(1); }
+.hover-lift:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--card-shadow) !important;
 }
 
-.animate-bounce {
-    animation: bounce 2s infinite;
+/* --- 👤 USER INTERFACE & PROFILE --- */
+.user-profile-pill {
+    background: white;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+    border-radius: 999px;
 }
 
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
+.user-profile-pill:hover {
+    border-color: var(--primary-blue);
+    background: #f8fafc;
 }
 
-/* --- 8. CUSTOM SCROLLBAR --- */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: var(--slate-50); }
-::-webkit-scrollbar-thumb { 
-    background: #cbd5e1; 
-    border-radius: 10px; 
+.user-avatar-circle {
+    width: 26px;
+    height: 26px;
+    background: var(--primary-blue);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* --- 9. SERVICE PAGE SCOPING --- */
-.service-page-wrapper .service-tab.active-tab { 
-    color: white !important; 
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+/* --- 🚚 3D TRACKING TIMELINE --- */
+.fa-spin-slow {
+    animation: fa-spin 3s linear infinite;
 }
 
-/* --- Add these to your existing style.css --- */
+/* --- 🏁 DARK PREMIUM FOOTER --- */
+.dark-footer {
+    background-color: var(--footer-bg);
+    color: #cbd5e1;
+    position: relative;
+    z-index: 10;
+}
 
-.btn-hero-white {
-    transition: var(--transition);
+.footer-heading {
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.35em;
+    color: #64748b;
+    margin-bottom: 1.8rem;
+    font-style: italic;
+}
+
+.footer-link {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-decoration: none !important;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.footer-link:hover {
+    color: white;
+    transform: translateX(8px);
+}
+
+.social-pill {
+    width: 42px;
+    height: 42px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    text-decoration: none !important;
+}
+
+.social-pill:hover {
+    background: var(--primary-blue);
+    color: white;
+    transform: translateY(-5px) rotate(8deg);
+    box-shadow: 0 10px 20px -5px var(--primary-blue-glow);
+}
+
+.contact-card-mini {
+    background: rgba(255, 255, 255, 0.02);
+    padding: 12px 16px;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.4s ease;
+}
+
+.contact-card-mini:hover {
+    border-color: var(--primary-blue);
+    background: rgba(37, 99, 235, 0.08);
+}
+
+/* --- 🌀 BACKGROUND ANIMATIONS --- */
+@keyframes floating {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    50% { transform: translate(15px, -25px) rotate(5deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+.floating-blob {
+    animation: floating 10s ease-in-out infinite;
+    filter: blur(100px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* --- 📱 RESPONSIVE & UTILITIES --- */
+@media (max-width: 768px) {
+    .glass-nav { padding: 0.5rem 0; }
+    .dark-footer { text-align: center; }
+    .contact-card-mini { justify-content: center; }
+    .footer-heading { margin-top: 1.5rem; }
+    
+    /* Mobile Scale Refinements */
+    .display-5 { font-size: 2rem; }
+    .text-3xl { font-size: 1.7rem; }
+}
+
+.fw-black { font-weight: 900; }
+.tracking-tighter { letter-spacing: -0.05em; }
+.tracking-widest { letter-spacing: 0.25em; }
+.italic { font-style: italic; }
+.uppercase { text-transform: uppercase; }
+
+/* --- 🛠️ MODAL & FORM FIXES --- */
+.modal-content {
     border: none;
-    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
 }
 
-.btn-hero-white:hover {
-    transform: translateY(-5px) scale(1.02);
+input:focus, textarea:focus, .form-control:focus {
+    outline: none !important;
+    border-color: var(--primary-blue) !important;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1) !important;
+}
+
+.custom-input {
+    width: 100%;
+    padding: 0.75rem 1.25rem;
     background-color: #f8fafc;
-    color: var(--blue-600);
-}
-
-/* Ensure Carousel images cover the area properly */
-.carousel-item img {
-    object-fit: cover;
-    border-radius: 2rem;
-}
-
-/* Navbar active link for White Background Hero */
-.glass-nav.fixed-top {
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-}
-
-/* Animations for Carousel transition */
-.carousel-fade .carousel-item {
-    opacity: 0;
-    transition-duration: 1s;
-    transition-property: opacity;
-}
-
-.carousel-fade .carousel-item.active {
-    opacity: 1;
+    border: none;
+    border-radius: 1rem;
+    font-weight: 700;
+    font-size: 0.875rem;
+    transition: all 0.3s;
 }

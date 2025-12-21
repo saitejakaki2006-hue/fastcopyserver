@@ -7,6 +7,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Service, Order, UserProfile
 
+
+
+import uuid
+from django.http import JsonResponse
+
+
+from django.db import IntegrityError
+
 # --- NAVIGATION ---
 def home(request):
     services = Service.objects.all()[:3]
@@ -27,15 +35,28 @@ def services_page(request):
     })
     
 # --- AUTHENTICATION ---
+
+
 def register_view(request):
     if request.method == "POST":
+        full_name = request.POST.get('username')
         mobile = request.POST.get('mobile')
-        pw = request.POST.get('password')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+        address = request.POST.get('address')
+
+        if password != confirm_password:
+            messages.error(request, "Passwords do not match!")
+            return redirect('register')
+
         if User.objects.filter(username=mobile).exists():
             messages.error(request, "Mobile already registered!")
             return redirect('register')
-        user = User.objects.create_user(username=mobile, password=pw, first_name=request.POST.get('name'))
-        UserProfile.objects.create(user=user, mobile=mobile, address=request.POST.get('address'))
+
+        user = User.objects.create_user(username=mobile, password=password, email=email, first_name=full_name)
+        UserProfile.objects.create(user=user, mobile=mobile, address=address)
+        messages.success(request, "Account created! Please login.")
         return redirect('login')
     return render(request, 'core/register.html')
 
@@ -46,7 +67,7 @@ def login_view(request):
         user = authenticate(request, username=mobile, password=pw)
         if user:
             login(request, user)
-            return redirect('home')
+            return redirect('profile')
         messages.error(request, "Invalid Credentials")
     return render(request, 'core/login.html')
 
@@ -57,29 +78,47 @@ def logout_view(request):
 # --- PROFILE & HISTORY ---
 @login_required(login_url='login')
 def profile_view(request):
-    profile, created = UserProfile.objects.get_or_create(
-        user=request.user,
-        defaults={'mobile': request.user.username, 'address': 'Update address'}
-    )
+    # Fetch data strictly for the logged-in user
+    profile = get_object_or_404(UserProfile, user=request.user)
     all_orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    tracking = all_orders.exclude(status='Delivered').first()
+    
     return render(request, 'core/profile.html', {
         'profile': profile,
         'recent_bookings': all_orders[:3],
-        'tracking': all_orders.exclude(status='Delivered').first(),
+        'tracking': tracking,
     })
+    
+
 
 @login_required(login_url='login')
 def edit_profile(request):
     if request.method == "POST":
         user = request.user
-        profile = user.userprofile
-        user.first_name = request.POST.get('name')
-        user.save()
-        profile.mobile = request.POST.get('mobile')
-        profile.address = request.POST.get('address')
-        profile.save()
-        messages.success(request, "Profile updated!")
-    return redirect('profile')
+        profile = get_object_or_404(UserProfile, user=user)
+        
+        new_name = request.POST.get('name')
+        new_mobile = request.POST.get('mobile')
+        new_address = request.POST.get('address')
+        
+        # Check if mobile exists for another user
+        if User.objects.filter(username=new_mobile).exclude(id=user.id).exists():
+            return JsonResponse({'success': False, 'message': 'Mobile number already in use.'})
+            
+        try:
+            user.first_name = new_name
+            user.username = new_mobile
+            user.save()
+            
+            profile.mobile = new_mobile
+            profile.address = new_address
+            profile.save()
+            
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+            
+    return JsonResponse({'success': False, 'message': 'Invalid Request'})
 
 @login_required(login_url='login')
 def history_view(request):
@@ -89,21 +128,12 @@ def history_view(request):
 
 # --- CART & ORDERING ---
 @login_required(login_url='login')
+@login_required(login_url='/login/')
 def cart_page(request):
-    # Fetching items from session (assuming cart is stored in session)
     cart_items = request.session.get('cart', [])
-    
-    # THE FIX: Use float() instead of int() to handle strings like '525.00'
     total_bill = sum(float(item.get('total_price', 0)) for item in cart_items)
-    
-    # Optional: If you want the total_bill to be an integer at the end
-    # total_bill = int(total_bill) 
+    return render(request, 'core/cart.html', {'cart_items': cart_items, 'total_bill': total_bill})
 
-    context = {
-        'cart_items': cart_items,
-        'total_bill': total_bill,
-    }
-    return render(request, 'core/cart.html', context)
 def remove_from_cart(request, item_id):
     cart_list = request.session.get('cart', [])
     if 0 <= item_id < len(cart_list):
@@ -114,15 +144,17 @@ def remove_from_cart(request, item_id):
 
 def add_to_cart(request):
     if request.method == "POST":
-        item = {'service_name': request.POST.get('service_name'), 'total_price': request.POST.get('total_price_hidden')}
-        
+        item = {
+            'service_name': request.POST.get('service_name'),
+            'total_price': request.POST.get('total_price_hidden'),
+            'document_name': request.FILES['document'].name if 'document' in request.FILES else "File.pdf"
+        }
         cart = request.session.get('cart', [])
         cart.append(item)
         request.session['cart'] = cart
         request.session.modified = True
         return JsonResponse({'success': True})
     return JsonResponse({'success': False})
-
 
 
 @login_required
@@ -139,29 +171,20 @@ def order_now(request):
     return redirect('services')
 
 
-@login_required(login_url='login')
+@login_required
 def order_all(request):
     if request.method == "POST":
         cart_items = request.session.get('cart', [])
-        
-        if not cart_items:
-            return redirect('cart')
-
         for item in cart_items:
-            # The conversion to float fixes the ValueError
-            price_as_number = float(item.get('total_price', 0))
-            
             Order.objects.create(
                 user=request.user,
-                service_name=item.get('service_name', 'Printing Service'),
-                total_price=price_as_number,
+                service_name=item.get('service_name'),
+                total_price=float(item.get('total_price', 0)),
                 status='Pending'
             )
-
-        # Clear the cart after orders are created
         request.session['cart'] = []
-        return redirect('home') # Or a success page
-        
+        messages.success(request, "Order placed successfully!")
+        return redirect('home')
     return redirect('cart')
 
 def calculate_pages(request):
@@ -172,3 +195,13 @@ def calculate_pages(request):
         except:
             return JsonResponse({'success': False})
     return JsonResponse({'success': False})
+
+# Add these to the NAVIGATION section of your views.py
+
+def privacy_policy(request):
+    """Renders the Privacy Policy page."""
+    return render(request, 'core/privacy_policy.html')
+
+def terms_conditions(request):
+    """Renders the Terms and Conditions page."""
+    return render(request, 'core/terms_conditions.html')

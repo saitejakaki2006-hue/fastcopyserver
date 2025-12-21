@@ -108,12 +108,17 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+# settings.py
 
-TIME_ZONE = 'UTC'
+# Set Language to English (India)
+LANGUAGE_CODE = 'en-in'
+
+# CRITICAL: Change Time Zone to India
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
+# Ensure Django uses the Time Zone set above for database and templates
 USE_TZ = True
 
 

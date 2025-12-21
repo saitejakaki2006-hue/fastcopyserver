@@ -1,36 +1,86 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container mx-auto px-6 py-20 flex justify-center">
-    <div class="max-w-2xl w-full bg-white p-12 rounded-[3.5rem] shadow-2xl border-2 border-slate-50" data-aos="fade-up">
-        <h2 class="text-3xl font-black text-slate-900 uppercase tracking-tight mb-8">Register Account</h2>
-        
-        <form method="POST" class="space-y-6" onsubmit="return validatePasswords()">
-            {% csrf_token %}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <input type="text" name="username" placeholder="User Name" required class="custom-input">
-                <input type="text" name="mobile" placeholder="Mobile Number" required class="custom-input">
+<section class="min-vh-100 flex items-center justify-center px-4 py-20 relative bg-slate-50 overflow-hidden">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-10 col-lg-7" data-aos="fade-up">
+                <div class="bg-white p-6 p-md-10 rounded-[3rem] shadow-2xl border border-slate-100">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-black text-slate-900 uppercase italic tracking-tighter">Registration <span class="text-blue-600">Portal</span></h2>
+                        <p class="text-slate-400 font-bold uppercase tracking-widest text-[9px] mt-1">Get your unique FastCopy ID</p>
+                    </div>
+
+                    <form method="POST" action="{% url 'register' %}" class="row g-4">
+                        {% csrf_token %}
+                        
+                        <div class="col-md-6">
+                            <label class="block text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1 px-1">User Name</label>
+                            <input type="text" name="username" required class="form-control bg-slate-50 border-0 rounded-xl py-2.5 fw-bold text-sm shadow-sm">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="block text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1 px-1">Mobile Number</label>
+                            <input type="text" name="mobile" required class="form-control bg-slate-50 border-0 rounded-xl py-2.5 fw-bold text-sm shadow-sm">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="block text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1 px-1">Email Address</label>
+                            <input type="email" name="email" required class="form-control bg-slate-50 border-0 rounded-xl py-2.5 fw-bold text-sm shadow-sm">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="block text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1 px-1">Password</label>
+                            <div class="input-group shadow-sm rounded-xl overflow-hidden">
+                                <input type="password" id="reg-pass" name="password" required class="form-control bg-slate-50 border-0 py-2.5 fw-bold text-sm">
+                                <button type="button" onclick="togglePass('reg-pass', this)" class="bg-slate-50 border-0 px-3">
+                                    <i class="fa-solid fa-eye text-slate-400 text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="block text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1 px-1">Confirm Password</label>
+                            <div class="input-group shadow-sm rounded-xl overflow-hidden">
+                                <input type="password" id="conf-pass" name="confirm_password" required class="form-control bg-slate-50 border-0 py-2.5 fw-bold text-sm">
+                                <button type="button" onclick="togglePass('conf-pass', this)" class="bg-slate-50 border-0 px-3">
+                                    <i class="fa-solid fa-eye text-slate-400 text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="block text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1 px-1">Delivery Address</label>
+                            <textarea name="address" required rows="2" class="form-control bg-slate-50 border-0 rounded-xl py-2.5 fw-bold text-sm shadow-sm"></textarea>
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <button type="submit" class="btn-3d w-100 py-3 bg-slate-900 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-xl hover:bg-black transition-all">
+                                Create Account <i class="fa-solid fa-id-card-clip ml-2"></i>
+                            </button>
+                            <div class="text-center mt-4">
+                                <p class="text-slate-400 font-bold text-[9px] uppercase tracking-widest">
+                                    Already have an ID? <a href="{% url 'login' %}" class="text-blue-600 no-underline hover:underline ml-1">Login</a>
+                                </p>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <input type="email" name="email" placeholder="Email Address" required class="custom-input">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <input type="password" id="pw" name="password" placeholder="Password" required class="custom-input">
-                <input type="password" id="cpw" name="confirm_password" placeholder="Confirm Password" required class="custom-input">
-            </div>
-            <textarea name="address" placeholder="Your Full Address" required rows="3" class="custom-input resize-none"></textarea>
-            
-            <button type="submit" class="w-full bg-slate-900 text-white font-black py-5 rounded-2xl shadow-xl uppercase tracking-widest">
-                Create Account
-            </button>
-        </form>
+        </div>
     </div>
-</div>
+</section>
 
 <script>
-function validatePasswords() {
-    if(document.getElementById('pw').value !== document.getElementById('cpw').value) {
-        alert("Passwords do not match!");
-        return false;
+function togglePass(id, btn) {
+    const input = document.getElementById(id);
+    const icon = btn.querySelector('i');
+    if (input.type === "password") {
+        input.type = "text";
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = "password";
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
     }
-    return true;
 }
 </script>
 {% endblock %}
