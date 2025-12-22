@@ -54,8 +54,7 @@ ROOT_URLCONF = 'fastCopyConfig.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        # THIS LINE IS THE FIX FOR THE ERROR:
-        'DIRS': [os.path.join(BASE_DIR, 'templates')], 
+        'DIRS': [BASE_DIR / 'templates'], # <--- THIS LINE IS ESSENTIAL
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -131,3 +130,6 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+MEDIA_URL = '/orders/'
+MEDIA_ROOT = BASE_DIR / 'orders'

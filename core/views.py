@@ -9,6 +9,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Service, Order, UserProfile
 
+import re
+
 # --- 👤 AUTHENTICATION & REGISTRATION HUB ---
 
 def register_view(request):
@@ -78,31 +80,36 @@ def logout_view(request):
 
 # --- 📊 PROFILE & STUDENT DASHBOARD ---
 
+
+
 @login_required(login_url='login')
 def profile_view(request):
     """
-    Renders the student dashboard. 
-    Uses get_or_create to prevent 404 errors for Superusers/Admin.
+    Renders the dashboard. Fetches the latest non-delivered order 
+    to show real-time tracking from the Admin Panel.
     """
-    # This replaces get_object_or_404
+    # Prevent 404 for Admin/Superusers without a profile
     profile, created = UserProfile.objects.get_or_create(
         user=request.user,
-        defaults={'mobile': 'Not Provided', 'address': 'Not Provided'}
+        defaults={'mobile': request.user.username, 'address': 'Update your address'}
     )
+
+    # Fetch all orders for history
+    all_orders = Order.objects.filter(user=request.user).order_by('-created_at')
     
-    try:
-        user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
-        tracking = user_orders.exclude(status='Delivered').first()
-        recent_bookings = user_orders[:5]
-    except Exception:
-        tracking = None
-        recent_bookings = []
+    # Fetch the single most recent order that IS NOT delivered yet for the Tracking Widget
+    active_tracking = all_orders.exclude(status='Delivered').first()
+    
+    # Fetch top 5 recent orders for the dashboard table
+    recent_bookings = all_orders[:5]
 
     return render(request, 'core/profile.html', {
         'profile': profile,
         'recent_bookings': recent_bookings,
-        'tracking': tracking,
+        'tracking': active_tracking, # This links to the Admin Panel status updates
     })
+
+# ... (keep all other registration/service views exactly as we coded before)
 
 @login_required(login_url='login')
 def edit_profile(request):
