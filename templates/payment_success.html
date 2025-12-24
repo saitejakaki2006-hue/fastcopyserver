@@ -1,0 +1,10 @@
+{% extends 'base.html' %} {% block content %}
+<div style="text-align: center; padding: 50px; color: white; background: #1a1a1a; min-height: 80vh;">
+    <h1 style="color: #00ff00;">✔ Payment Successful!</h1>
+    <p>Your order <strong>#{{ order.id }}</strong> has been placed.</p>
+    <p>We are currently processing your documents for campus delivery.</p>
+    <div style="margin-top: 30px;">
+        <a href="{% url 'profile' %}" style="background: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View My Orders</a>
+    </div>
+</div>
+{% endblock %}

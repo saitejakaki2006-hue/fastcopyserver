@@ -1,6 +1,10 @@
 import io
 import uuid
 import PyPDF2
+import hashlib
+import base64
+import json
+import requests
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth import login, logout, authenticate
@@ -9,18 +13,26 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+
 from .models import Service, Order, UserProfile
 
 # --- 👤 1. AUTHENTICATION & PROFILE HUB ---
 
 def register_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+        
     if request.method == "POST":
         full_name = request.POST.get('name', '').strip()
         mobile = request.POST.get('mobile', '').strip()
         password = request.POST.get('password', '')
+        
         if User.objects.filter(username=mobile).exists():
             messages.error(request, "Mobile number already registered.")
             return redirect('register')
+            
         user = User.objects.create_user(username=mobile, password=password, first_name=full_name)
         UserProfile.objects.create(user=user, mobile=mobile)
         messages.success(request, "Account created! Please login.")
@@ -28,14 +40,22 @@ def register_view(request):
     return render(request, 'core/register.html')
 
 def login_view(request):
+    """UPDATED: Now redirects to HOME instead of Profile"""
+    if request.user.is_authenticated:
+        return redirect('home')
+
     if request.method == "POST":
         mobile = request.POST.get('mobile')
         pw = request.POST.get('password')
         user = authenticate(request, username=mobile, password=pw)
+        
         if user:
             login(request, user)
-            return redirect('profile')
-        messages.error(request, "Invalid mobile number or password.")
+            messages.success(request, f"Welcome back, {user.first_name}!")
+            return redirect('home')  # Updated redirect logic
+        else:
+            messages.error(request, "Invalid mobile number or password.")
+            
     return render(request, 'core/login.html')
 
 def logout_view(request):
@@ -46,7 +66,6 @@ def logout_view(request):
 def profile_view(request):
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
-    # Tracking the most recent active order
     active_tracking = orders.exclude(status='Delivered').first()
     return render(request, 'core/profile.html', {
         'profile': profile,
@@ -85,28 +104,30 @@ def calculate_pages(request):
 
 @login_required(login_url='login')
 def add_to_cart(request):
-    """Saves file to temp storage and metadata to session."""
     if request.method == "POST":
-        uploaded_file = request.FILES.get('document')
+        uploaded_file = request.FILES.get('document') # Only one input used
         if not uploaded_file:
             return JsonResponse({'success': False})
 
-        # Securely store file in media/temp/
-        file_path = default_storage.save(
-            f'temp/{uuid.uuid4()}_{uploaded_file.name}', 
-            ContentFile(uploaded_file.read())
-        )
+        ext = uploaded_file.name.split('.')[-1].lower()
+        file_path = None
+        image_path = None
+
+        # Logic to separate PDF from Image processing
+        if ext == 'pdf':
+            file_path = default_storage.save(f'temp/{uuid.uuid4()}_{uploaded_file.name}', ContentFile(uploaded_file.read()))
+        else:
+            image_path = default_storage.save(f'temp_img/{uuid.uuid4()}_{uploaded_file.name}', ContentFile(uploaded_file.read()))
         
-        # Package item metadata
         item = {
             'service_name': request.POST.get('service_name'),
             'total_price': request.POST.get('total_price_hidden'),
             'document_name': uploaded_file.name,
             'temp_path': file_path,
+            'temp_image_path': image_path,
             'copies': request.POST.get('copies', 1),
             'location': request.POST.get('location'),
-            'print_mode': request.POST.get('print_mode'), # Captured from dropdown
-            'custom_color_pages': request.POST.get('custom_color_pages', ''),
+            'print_mode': request.POST.get('print_mode'),
             'side_type': request.POST.get('side_type', 'single'),
         }
         
@@ -115,8 +136,7 @@ def add_to_cart(request):
         request.session['cart'] = cart
         request.session.modified = True
         return JsonResponse({'success': True})
-    return JsonResponse({'success': False})
-
+    
 @login_required(login_url='login')
 def cart_page(request):
     cart_items = request.session.get('cart', [])
@@ -137,45 +157,78 @@ def remove_from_cart(request, item_id):
         request.session.modified = True
     return redirect('cart')
 
-# --- 🚀 3. ORDER PLACEMENT LOGIC ---
+# --- 🚀 3. ORDER PLACEMENT & PAYMENT ---
 
 @login_required(login_url='login')
 def order_all(request):
-    """Converts all session cart items into actual Order records."""
     if request.method == "POST":
         cart_items = request.session.get('cart', [])
+        
+        # 1. Safety Check: If cart is empty, send them back
+        if not cart_items:
+            messages.warning(request, "Your cart is empty.")
+            return redirect('cart')
+
+        batch_id = str(uuid.uuid4())[:12].upper()
+        last_order = None
+
         for item in cart_items:
             temp_path = item.get('temp_path')
-            if temp_path and default_storage.exists(temp_path):
-                with default_storage.open(temp_path) as f:
-                    # Model.save() logic will format 'custom_split' to 'custom(pages)'
-                    Order.objects.create(
-                        order_id=str(uuid.uuid4())[:8].upper(),
-                        user=request.user,
-                        service_name=item.get('service_name'),
-                        total_price=float(item.get('total_price', 0)),
-                        document=ContentFile(f.read(), name=item.get('document_name')),
-                        location=item.get('location'),
-                        print_mode=item.get('print_mode'),
-                        custom_color_pages=item.get('custom_color_pages'),
-                        side_type=item.get('side_type'),
-                        copies=item.get('copies'),
-                        status='Pending'
-                    )
-                default_storage.delete(temp_path)
-        request.session['cart'] = []
-        messages.success(request, "All orders placed successfully!")
-        return redirect('profile')
+            temp_img_path = item.get('temp_image_path')
+
+            # We check if AT LEAST one of the file paths exists
+            if (temp_path and default_storage.exists(temp_path)) or (temp_img_path and default_storage.exists(temp_img_path)):
+                
+                # Logic to handle PDF data if it exists
+                pdf_file = None
+                if temp_path and default_storage.exists(temp_path):
+                    with default_storage.open(temp_path) as f:
+                        pdf_file = ContentFile(f.read(), name=item.get('document_name'))
+
+                # Logic to handle Image data if it exists
+                img_file = None
+                if temp_img_path and default_storage.exists(temp_img_path):
+                    with default_storage.open(temp_img_path) as f:
+                        img_file = ContentFile(f.read(), name=temp_img_path.split('_')[-1])
+
+                # 2. Create the Order
+                order = Order.objects.create(
+                    user=request.user,
+                    service_name=item.get('service_name'),
+                    total_price=float(item.get('total_price', 0)),
+                    document=pdf_file,
+                    image_upload=img_file,
+                    location=item.get('location'),
+                    print_mode=item.get('print_mode'),
+                    custom_color_pages=item.get('custom_color_pages', ''),
+                    side_type=item.get('side_type'),
+                    copies=item.get('copies'),
+                    transaction_id=batch_id
+                )
+                last_order = order
+                
+                # Cleanup temp files
+                if temp_path: default_storage.delete(temp_path)
+                if temp_img_path: default_storage.delete(temp_img_path)
+
+        # 3. Final Safety Check: Did we actually create any orders?
+        if last_order:
+            request.session['cart'] = [] # Clear cart only on success
+            request.session.modified = True
+            return redirect('checkout_summary', order_id=last_order.id)
+        else:
+            messages.error(request, "Could not process order. Files may have expired. Please re-upload.")
+            return redirect('cart')
+
     return redirect('cart')
 
 @login_required(login_url='login')
 def order_now(request):
-    """Direct purchase logic bypassing the cart."""
+    """Direct purchase logic bypassing the cart, sending user to payment."""
     if request.method == "POST":
         uploaded_file = request.FILES.get('document')
         if uploaded_file:
-            Order.objects.create(
-                order_id=str(uuid.uuid4())[:8].upper(),
+            order = Order.objects.create(
                 user=request.user,
                 service_name=request.POST.get('service_name'),
                 total_price=float(request.POST.get('total_price_hidden', 0)),
@@ -185,13 +238,118 @@ def order_now(request):
                 custom_color_pages=request.POST.get('custom_color_pages'),
                 side_type=request.POST.get('side_type'),
                 copies=request.POST.get('copies', 1),
-                status='Pending'
+                status='Pending',
+                payment_status='Pending'
             )
-            messages.success(request, "Order placed successfully!")
-            return redirect('profile')
+            return redirect('checkout_summary', order_id=order.id)
     return redirect('services')
 
-# --- 🌐 4. STATIC PAGES ---
+# --- 💳 4. PHONEPE INTEGRATION ---
+
+def get_phonepe_token():
+    """Exchanges keys for OAuth2 token with terminal debugging."""
+    data = {
+        'client_id': settings.PHONEPE_CLIENT_ID,
+        'client_secret': settings.PHONEPE_CLIENT_SECRET,
+        'grant_type': 'client_credentials',
+    }
+    try:
+        response = requests.post(settings.PHONEPE_AUTH_URL, data=data)
+        print(f"PHONEPE AUTH STATUS: {response.status_code}")
+        print(f"PHONEPE AUTH RESPONSE: {response.text}")
+
+        if response.status_code == 200:
+            return response.json().get('access_token')
+    except Exception as e:
+        print(f"CONNECTION ERROR: {e}")
+    return None
+
+def checkout_summary(request, order_id):
+    """Displays order confirmation before initiating payment."""
+    order = get_object_or_404(Order, id=order_id)
+    return render(request, 'checkout.html', {'order': order})
+
+@login_required(login_url='login')
+def initiate_payment(request, order_id):
+    """Starts the PhonePe Pay Page flow."""
+    order = get_object_or_404(Order, id=order_id)
+    token = get_phonepe_token()
+    
+    if not token:
+        return render(request, 'payment_failed.html', {
+            "order": order, 
+            "error": "Authentication with Payment Gateway Failed."
+        })
+
+    host = request.get_host()
+    scheme = 'https' if request.is_secure() else 'http'
+    base_url = f"{scheme}://{host}"
+
+    txn_id = f"TXN_{uuid.uuid4().hex[:10].upper()}"
+    order.transaction_id = txn_id
+    order.save()
+
+    payload = {
+        "merchantId": settings.PHONEPE_MERCHANT_ID,
+        "merchantTransactionId": txn_id,
+        "merchantUserId": f"USER_{request.user.id}",
+        "amount": int(order.total_price * 100),
+        "redirectUrl": f"{base_url}/payment/callback/",
+        "redirectMode": "POST",
+        "callbackUrl": f"{base_url}/payment/callback/",
+        "paymentInstrument": {"type": "PAY_PAGE"}
+    }
+
+    base64_payload = base64.b64encode(json.dumps(payload).encode()).decode()
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+
+    try:
+        response = requests.post(
+            settings.PHONEPE_PAY_URL,
+            json={"request": base64_payload},
+            headers=headers
+        )
+        res_data = response.json()
+        print(f"PAY INITIATE RESPONSE: {res_data}")
+
+        if res_data.get('success'):
+            pay_url = res_data['data']['instrumentResponse']['redirectInfo']['url']
+            return redirect(pay_url)
+        else:
+            return render(request, 'payment_failed.html', {
+                "order": order, 
+                "error": res_data.get('message', 'Gateway rejection')
+            })
+            
+    except Exception as e:
+        return render(request, 'payment_failed.html', {"order": order, "error": str(e)})
+
+@csrf_exempt
+def payment_callback(request):
+    """Handles logic after the user returns from PhonePe."""
+    if request.method == "POST":
+        merchant_txn_id = request.POST.get('merchantTransactionId')
+        code = request.POST.get('code')
+        
+        order = get_object_or_404(Order, transaction_id=merchant_txn_id)
+        
+        if code == 'PAYMENT_SUCCESS':
+            order.payment_status = "Success"
+            order.status = "Ready"
+            order.save()
+            return render(request, 'payment_success.html', {'order': order})
+        else:
+            order.payment_status = "Failed"
+            order.save()
+            return render(request, 'payment_failed.html', {'order': order})
+            
+    return redirect('home')
+
+# --- 🌐 5. STATIC PAGES ---
 
 def home(request):
     services = Service.objects.all()[:3]

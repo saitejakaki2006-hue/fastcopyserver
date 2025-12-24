@@ -4,58 +4,58 @@
 {% block content %}
 <div class="home-master-wrapper">
     <section class="section-highlight py-12 py-md-24 px-4 px-md-6 overflow-hidden relative min-vh-75 d-flex align-items-center">
-    <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-600/10 blur-[120px] rounded-full pulse-blue"></div>
-    <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-400/10 blur-[120px] rounded-full pulse-blue" style="animation-delay: 2s;"></div>
+        <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-600/10 blur-[120px] rounded-full pulse-blue"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-400/10 blur-[120px] rounded-full pulse-blue" style="animation-delay: 2s;"></div>
 
-    <div class="container mx-auto relative z-10">
-        <div class="row align-items-center g-4 g-md-5">
-            <div class="col-lg-6 order-2 order-lg-1" data-aos="fade-right">
-                <div class="d-flex align-items-center gap-2 gap-md-3 mb-4 mb-md-6">
-                    <span class="w-10 w-md-12 h-[2px] bg-blue-600"></span>
-                    <p class="text-blue-600 font-black uppercase tracking-[0.3em] tracking-md-[0.4em] text-[8px] text-md-[10px] m-0">FastCopy Premium Hub</p>
-                </div>
-                
-                <h1 class="text-3xl md:text-7xl font-black text-slate-900 leading-[1.2] leading-md-[1.1] mb-6 mb-md-8 uppercase tracking-tighter italic">
-                    Fast, Reliable, and <span class="text-blue-600">Affordable</span> <br class="d-none d-md-block">
-                    <span class="text-slate-800"> Printing Services.</span>
-                </h1>
-                
-                <p class="text-gray-600 text-sm text-md-lg mb-8 mb-md-10 max-w-lg font-medium leading-relaxed opacity-80">
-                    Get professional printing, binding, and document services with instant pricing and quick turnaround times.
-                </p>
-                
-                <div class="d-flex flex-wrap gap-2 gap-md-3">
-                    <a href="{% url 'services' %}" class="btn-3d bg-blue-600 text-white px-6 px-md-8 py-3 py-md-3.5 rounded-full font-black text-[9px] text-md-[10px] hover:bg-blue-700 shadow-2xl transition-all inline-block tracking-widest no-underline">
-                        EXPLORE SERVICES <i class="fa-solid fa-arrow-right-long ml-2"></i>
-                    </a>
-                    <a href="#how-it-works" class="px-5 px-md-6 py-3 py-md-3.5 rounded-full font-black text-[9px] text-md-[10px] border-2 border-slate-200 text-slate-600 hover:bg-slate-50 transition-all tracking-widest no-underline">
-                        LEARN MORE
-                    </a>
-                </div>
-            </div>
-            
-            <div class="col-lg-6 order-1 order-lg-2" data-aos="zoom-in" data-aos-duration="1000">
-                <div class="relative d-flex justify-center justify-content-lg-end">
-                    <div class="absolute inset-0 bg-blue-600/5 blur-[100px] rounded-full"></div>
+        <div class="container mx-auto relative z-10">
+            <div class="row align-items-center g-4 g-md-5">
+                <div class="col-lg-6 order-2 order-lg-1" data-aos="fade-right">
+                    <div class="d-flex align-items-center gap-2 gap-md-3 mb-4 mb-md-6">
+                        <span class="w-10 w-md-12 h-[2px] bg-blue-600"></span>
+                        <p class="text-blue-600 font-black uppercase tracking-[0.3em] tracking-md-[0.4em] text-[8px] text-md-[10px] m-0">FastCopy Premium Hub</p>
+                    </div>
                     
-                    <div id="heroCarousel" class="carousel slide carousel-fade hero-image-wrapper p-2 w-100 lg:w-2/3 mx-auto ms-lg-auto" data-bs-ride="carousel" data-bs-interval="3000">
-                        <div class="carousel-inner rounded-4 shadow-2xl border-4 border-white">
-                            <div class="carousel-item active">
-                                <img src="{% static 'images/fast copy img1.jpeg' %}" class="d-block w-100 object-cover aspect-[4/3] floating-3d" alt="Premium Printing">
-                            </div>
-                            <div class="carousel-item">
-                                <img src="{% static 'images/fast copy img2.jpeg' %}" class="d-block w-100 object-cover aspect-[4/3] floating-3d" alt="Quality Binding">
-                            </div>
-                            <div class="carousel-item">
-                                <img src="{% static 'images/fast copy img3.jpeg' %}" class="d-block w-100 object-cover aspect-[4/3] floating-3d" alt="Fast Documentation">
+                    <h1 class="text-3xl md:text-7xl font-black text-slate-900 leading-[1.2] leading-md-[1.1] mb-6 mb-md-8 uppercase tracking-tighter italic">
+                        Fast, Reliable, and <span class="text-blue-600">Affordable</span> <br class="d-none d-md-block">
+                        <span class="text-slate-800"> Printing Services.</span>
+                    </h1>
+                    
+                    <p class="text-gray-600 text-sm text-md-lg mb-8 mb-md-10 max-w-lg font-medium leading-relaxed opacity-80">
+                        Get professional printing, binding, and document services with instant pricing and quick turnaround times.
+                    </p>
+                    
+                    <div class="d-flex flex-wrap gap-2 gap-md-3">
+                        <a href="{% url 'services' %}" class="btn-3d bg-blue-600 text-white px-6 px-md-8 py-3 py-md-3.5 rounded-full font-black text-[9px] text-md-[10px] hover:bg-blue-700 shadow-2xl transition-all inline-block tracking-widest no-underline">
+                            EXPLORE SERVICES <i class="fa-solid fa-arrow-right-long ml-2"></i>
+                        </a>
+                        <a href="#how-it-works" class="px-5 px-md-6 py-3 py-md-3.5 rounded-full font-black text-[9px] text-md-[10px] border-2 border-slate-200 text-slate-600 hover:bg-slate-50 transition-all tracking-widest no-underline">
+                            LEARN MORE
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6 order-1 order-lg-2" data-aos="zoom-in" data-aos-duration="1000">
+                    <div class="relative d-flex justify-center justify-content-lg-end">
+                        <div class="absolute inset-0 bg-blue-600/5 blur-[100px] rounded-full"></div>
+                        
+                        <div id="heroCarousel" class="carousel slide carousel-fade hero-image-wrapper p-2 w-100 lg:w-2/3 mx-auto ms-lg-auto" data-bs-ride="carousel" data-bs-interval="3000">
+                            <div class="carousel-inner rounded-4 shadow-2xl border-4 border-white">
+                                <div class="carousel-item active">
+                                    <img src="{% static 'images/fast copy img1.jpeg' %}" class="d-block w-100 object-cover aspect-[4/3] floating-3d" alt="Premium Printing">
+                                </div>
+                                <div class="carousel-item">
+                                    <img src="{% static 'images/fast copy img2.jpeg' %}" class="d-block w-100 object-cover aspect-[4/3] floating-3d" alt="Quality Binding">
+                                </div>
+                                <div class="carousel-item">
+                                    <img src="{% static 'images/fast copy img3.jpeg' %}" class="d-block w-100 object-cover aspect-[4/3] floating-3d" alt="Fast Documentation">
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
     <section class="bg-white py-16 py-md-24 px-6 relative border-t border-slate-100">
         <div class="container mx-auto">
@@ -74,7 +74,7 @@
                             </div>
                             <h3 class="text-xl text-md-2xl font-black mb-3 text-slate-800 uppercase italic">Digital Printing</h3>
                             <p class="text-gray-500 text-[9px] text-md-[10px] mb-6 mb-md-8 font-bold uppercase tracking-widest leading-loose">High-Definition B&W and Color laser prints on premium paper.</p>
-                            <a href="{% url 'services' %}?s=Printing" class="btn-3d bg-slate-900 text-white w-full py-3 py-md-4 rounded-2xl font-black text-[9px] text-md-[10px] tracking-widest hover:bg-blue-600 transition no-underline">ORDER NOW</a>
+                            <a href="{% url 'services' %}#Printing" class="btn-3d bg-slate-900 text-white w-full py-3 py-md-4 rounded-2xl font-black text-[9px] text-md-[10px] tracking-widest hover:bg-blue-600 transition no-underline">ORDER NOW</a>
                         </div>
                     </div>
                 </div>
@@ -87,7 +87,7 @@
                             </div>
                             <h3 class="text-xl text-md-2xl font-black mb-3 text-slate-800 uppercase italic">Spiral Binding</h3>
                             <p class="text-gray-500 text-[9px] text-md-[10px] mb-6 mb-md-8 font-bold uppercase tracking-widest leading-loose">Flexible and durable binding perfect for project reports and notes.</p>
-                            <a href="{% url 'services' %}?s=Spiral" class="btn-3d bg-slate-900 text-white w-full py-3 py-md-4 rounded-2xl font-black text-[9px] text-md-[10px] tracking-widest hover:bg-blue-600 transition no-underline">ORDER NOW</a>
+                            <a href="{% url 'services' %}#Spiral" class="btn-3d bg-slate-900 text-white w-full py-3 py-md-4 rounded-2xl font-black text-[9px] text-md-[10px] tracking-widest hover:bg-blue-600 transition no-underline">ORDER NOW</a>
                         </div>
                     </div>
                 </div>
@@ -100,7 +100,7 @@
                             </div>
                             <h3 class="text-xl text-md-2xl font-black mb-3 text-slate-800 uppercase italic">Soft Binding</h3>
                             <p class="text-gray-500 text-[9px] text-md-[10px] mb-6 mb-md-8 font-bold uppercase tracking-widest leading-loose">Premium glued binding with customized front-back covers.</p>
-                            <a href="{% url 'services' %}?s=Soft" class="btn-3d bg-slate-900 text-white w-full py-3 py-md-4 rounded-2xl font-black text-[9px] text-md-[10px] tracking-widest hover:bg-blue-600 transition no-underline">ORDER NOW</a>
+                            <a href="{% url 'services' %}#Soft" class="btn-3d bg-slate-900 text-white w-full py-3 py-md-4 rounded-2xl font-black text-[9px] text-md-[10px] tracking-widest hover:bg-blue-600 transition no-underline">ORDER NOW</a>
                         </div>
                     </div>
                 </div>
@@ -113,7 +113,7 @@
                             </div>
                             <h3 class="text-xl text-md-2xl font-black mb-3 text-slate-800 uppercase italic">Custom Printing</h3>
                             <p class="text-gray-500 text-[9px] text-md-[10px] mb-6 mb-md-8 font-bold uppercase tracking-widest leading-loose">Save cost with 4-in-1, 8-in-1, and 9-in-1 custom layouts.</p>
-                            <a href="{% url 'services' %}?s=Custom" class="btn-3d bg-slate-900 text-white w-full py-3 py-md-4 rounded-2xl font-black text-[9px] text-md-[10px] tracking-widest hover:bg-blue-600 transition no-underline">ORDER NOW</a>
+                            <a href="{% url 'services' %}#Custom" class="btn-3d bg-slate-900 text-white w-full py-3 py-md-4 rounded-2xl font-black text-[9px] text-md-[10px] tracking-widest hover:bg-blue-600 transition no-underline">ORDER NOW</a>
                         </div>
                     </div>
                 </div>
@@ -229,7 +229,7 @@
                 Join thousands of students who trust us for their project reports and documentation.
             </p>
             <div class="d-flex justify-center">
-                <a href="{% url 'services' %}" class="btn-3d bg-white text-blue-600 px-7 px-md-8 py-3 py-md-3.5 rounded-full font-black text-[8px] text-md-[9px] hover:bg-blue-50 shadow-2xl transition-all uppercase tracking-[0.2em] tracking-md-[0.25em] no-underline">
+                <a href="{% url 'services' %}#Printing" class="btn-3d bg-white text-blue-600 px-7 px-md-8 py-3 py-md-3.5 rounded-full font-black text-[8px] text-md-[9px] hover:bg-blue-50 shadow-2xl transition-all uppercase tracking-[0.2em] tracking-md-[0.25em] no-underline">
                     Start Your Order <i class="fa-solid fa-bolt ml-1"></i>
                 </a>
             </div>

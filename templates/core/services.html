@@ -139,15 +139,20 @@
                                 </div>
 
                                 <div class="col-lg-6">
-                                    <label class="form-label mb-1 small fw-bold text-muted text-uppercase text-center w-100">PDF Preview</label>
+                                    <label class="form-label mb-1 small fw-bold text-muted text-uppercase text-center w-100">Upload PDF or Image</label>
                                     <div class="upload-box position-relative bg-light rounded-4 border-dashed border-2 d-flex align-items-center justify-content-center overflow-hidden mx-auto" style="height: 180px; width: 100%; max-width: 250px;">
-                                        <input type="file" name="document" id="document" class="d-none" accept=".pdf">
+                                        <input type="file" name="document" id="document" class="d-none" accept=".pdf,image/*">
+                                        
                                         <label for="document" id="upload-ui" class="text-center cursor-pointer p-2 w-100 h-100 d-flex flex-column align-items-center justify-content-center">
                                             <i class="fas fa-cloud-upload-alt fs-3 text-secondary mb-1"></i>
-                                            <p class="small fw-bold text-secondary text-uppercase mb-0" style="font-size: 0.6rem;">Select PDF File</p>
+                                            <p class="small fw-bold text-secondary text-uppercase mb-0" style="font-size: 0.6rem;">Select File</p>
                                         </label>
+
                                         <div id="preview-wrapper" class="d-none w-100 h-100 p-2 text-center position-relative">
-                                            <canvas id="pdf-preview-canvas" class="img-fluid rounded-3 shadow-sm border h-100 w-auto mx-auto"></canvas>
+                                            <canvas id="pdf-preview-canvas" class="d-none img-fluid rounded-3 shadow-sm border h-100 w-auto mx-auto"></canvas>
+                                            
+                                            <img id="image-preview-tag" class="d-none img-fluid rounded-3 shadow-sm border h-100 w-auto mx-auto" style="object-fit: contain;">
+                                            
                                             <button type="button" onclick="resetUpload()" class="btn btn-danger btn-sm rounded-circle position-absolute top-0 end-0 m-1 shadow-sm" style="padding: 1px 5px; font-size: 0.6rem;">
                                                 <i class="fas fa-times"></i>
                                             </button>
@@ -199,7 +204,7 @@
     .service-page-wrapper .animate-bounce { animation: bounce 1.5s infinite; }
     @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
     .service-page-wrapper .fw-black { font-weight: 900; }
-    .service-page-wrapper #pdf-preview-canvas { max-width: 100%; object-fit: contain; }
+    .service-page-wrapper #pdf-preview-canvas, .service-page-wrapper #image-preview-tag { max-width: 100%; max-height: 160px; object-fit: contain; }
 </style>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -249,21 +254,40 @@
         calculateFinalPrice();
     }
 
+    function handleHashNavigation() {
+        const hash = window.location.hash;
+        if (hash === '#Printing') {
+            selectService($('#tab-Printing')[0], 'Printing', '#0d6efd', 'fa-print');
+        } else if (hash === '#Spiral') {
+            selectService($('#tab-Spiral')[0], 'Spiral Binding', '#6610f2', 'fa-book-open');
+        } else if (hash === '#Soft') {
+            selectService($('#tab-Soft')[0], 'Soft Binding', '#d63384', 'fa-book');
+        } else if (hash === '#Custom') {
+            selectService($('#tab-Custom')[0], 'Custom Printing', '#fd7e14', 'fa-sliders-h');
+        } else {
+            selectService($('#tab-Printing')[0], 'Printing', '#0d6efd', 'fa-print');
+        }
+        
+        if(hash) {
+            $('html, body').animate({
+                scrollTop: $("#form-container").offset().top - 100
+            }, 500);
+        }
+    }
+
     function processCart(isDirectOrder) {
         const nameVal = $('#user_name').val();
         const mobileVal = $('#user_mobile').val();
         const locVal = $('#location').val();
 
-        if(!T) { alert("Please upload a PDF first!"); return; }
+        if(!T) { alert("Please upload a PDF or Image first!"); return; }
         if(!locVal) { alert("Please select a pickup location!"); return; }
         if(!/^[A-Za-z\s]+$/.test(nameVal)) { alert("Name should only contain letters!"); return; }
         if(!/^\d{10}$/.test(mobileVal)) { alert("Mobile should be exactly 10 digits!"); return; }
 
         let formData = new FormData($('#order-form')[0]);
-        
         let currentType = $('#print_type').val();
         if(currentType === 'custom_split'){
-            let pages = $('#custom_color_input').val();
             formData.set('print_mode', 'custom_split'); 
         }
 
@@ -280,7 +304,7 @@
                         $('body').append(tempForm);
                         tempForm.submit();
                     } else {
-                        window.location.href = "{% url 'services' %}";
+                        window.location.href = "{% url 'cart' %}";
                     }
                 }
             }
@@ -305,10 +329,20 @@
     $('#layout_type').change(handleNupRules);
     $('#print_type').change(toggleSplitField);
 
+    // --- UPDATED UPLOAD HANDLER FOR PDF & IMAGES ---
     $('#document').change(function(e) {
         let file = e.target.files[0];
-        if (file && file.type === "application/pdf") {
-            $('#upload-ui').addClass('d-none'); $('#preview-wrapper').removeClass('d-none');
+        if (!file) return;
+
+        $('#upload-ui').addClass('d-none');
+        $('#preview-wrapper').removeClass('d-none');
+
+        // Reset previews
+        $('#pdf-preview-canvas').addClass('d-none');
+        $('#image-preview-tag').addClass('d-none');
+
+        if (file.type === "application/pdf") {
+            $('#pdf-preview-canvas').removeClass('d-none');
             let formData = new FormData();
             formData.append('document', file);
             formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
@@ -335,6 +369,19 @@
                 });
             };
             reader.readAsArrayBuffer(file);
+        } 
+        else if (file.type.startsWith("image/")) {
+            $('#image-preview-tag').removeClass('d-none');
+            T = 1; // Images count as 1 page for pricing
+            $('#page-num-display').text(T);
+            $('#page-count-badge').removeClass('invisible');
+            
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                $('#image-preview-tag').attr('src', e.target.result);
+                calculateFinalPrice();
+            };
+            reader.readAsDataURL(file);
         }
     });
 
@@ -379,7 +426,7 @@
                 });
 
                 if (T > 0 && isInvalid) {
-                    alert("Error: One or more page numbers entered exceed the total PDF page count (" + T + ").");
+                    alert("Error: One or more page numbers entered exceed total PDF page count.");
                     $('#custom_color_input').val("");
                     calculateFinalPrice();
                     return;
@@ -406,16 +453,15 @@
             else if (currentService === "Soft Binding") bindingCost = 25;
         }
         
-        // UPDATE BINDING SUMMARY TEXT DYNAMICALLY
         $('#label-binding-cost').text('₹' + bindingCost.toFixed(2));
-
         const grandTotal = totalPrinting + (bindingCost * copies);
         $('#price-display').text(grandTotal.toFixed(2));
         $('#total_price_hidden').val(Math.round(grandTotal));
     }
     
     $(document).ready(function() {
-        selectService($('#tab-Printing')[0], 'Printing', '#0d6efd', 'fa-print');
+        handleHashNavigation();
+        window.addEventListener('hashchange', handleHashNavigation);
     });
 </script>
 {% endblock %}

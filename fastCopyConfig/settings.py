@@ -9,6 +9,19 @@ SECRET_KEY = 'django-insecure-6zu4gfg3+vl-_*n8alvnmq#!kt-6+o9&r-w+$@0hzg76_50o9!
 DEBUG = True
 ALLOWED_HOSTS = []
 
+# settings.py
+
+
+PHONEPE_CLIENT_ID = "M23AVHQZQN8J3_2512242219"
+PHONEPE_CLIENT_SECRET = "ZDI4MjZlNjctOTU2MS00M2ZiLWI0ZGUtOTE0MjUzMmU5NGNl"
+
+# 2. Double check this URL (must be 'v1/oauth/token' for Sandbox)
+
+PHONEPE_AUTH_URL = "https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token"
+
+# 3. This is usually the part before the underscore in your Client ID
+PHONEPE_MERCHANT_ID = "M23AVHQZQN8J3"
+
 # 3. APPLICATION DEFINITION
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -94,3 +107,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # 10. DEFAULT AUTO FIELD
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_REDIRECT_URL = 'home'
+
+# Optional: If you want to redirect them to home after logging out too
+LOGOUT_REDIRECT_URL = 'home'

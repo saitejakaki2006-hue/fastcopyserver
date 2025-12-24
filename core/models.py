@@ -58,17 +58,30 @@ class Service(models.Model):
 
 
 # --- 3. ORDER MODEL (MASTER ENGINE) ---
+
 class Order(models.Model):
     """
     Order ID format: FC_ORDER_0000000000
-    Stores transaction details and printing configurations.
+    Stores transaction details and printing configurations for both PDF and Image files.
     """
+    
+    transaction_id = models.CharField(max_length=100, null=True, blank=True)
+    payment_status = models.CharField(
+        max_length=20, 
+        choices=[('Pending', 'Pending'), ('Success', 'Success'), ('Failed', 'Failed')],
+        default='Pending'
+    )
+    
     # Formatted Order ID
     order_id = models.CharField(max_length=30, unique=True, editable=False, null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
     
     service_name = models.CharField(max_length=100)
-    document = models.FileField(upload_to='orders/', null=True, blank=True)
+    
+    # Dual-purpose file support
+    # document stores PDFs, image_upload stores JPG/PNG/etc.
+    document = models.FileField(upload_to='orders/documents/', null=True, blank=True)
+    image_upload = models.ImageField(upload_to='orders/images/', null=True, blank=True)
     
     # Printing Mode Logic (bw, color, or custom(pages))
     print_mode = models.CharField(max_length=100, default='bw')
@@ -99,8 +112,10 @@ class Order(models.Model):
     def save(self, *args, **kwargs):
         # 1. Generate FC_ORDER_0000000000 format
         if not self.order_id:
+            # Save once to get the primary key (ID)
             super().save(*args, **kwargs)
             self.order_id = f"FC_ORDER_{self.id:010d}"
+            # Remove force_insert to allow the subsequent update
             kwargs.pop('force_insert', None)
 
         # 2. Logic for Custom print_mode format
@@ -112,7 +127,7 @@ class Order(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return str(self.order_id)
+        return str(self.order_id if self.order_id else f"Temp_{self.id}")
 
     class Meta:
         verbose_name = "Order"
