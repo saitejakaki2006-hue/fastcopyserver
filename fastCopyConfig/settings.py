@@ -12,15 +12,14 @@ ALLOWED_HOSTS = []
 # settings.py
 
 
-PHONEPE_CLIENT_ID = "M23AVHQZQN8J3_2512242219"
-PHONEPE_CLIENT_SECRET = "ZDI4MjZlNjctOTU2MS00M2ZiLWI0ZGUtOTE0MjUzMmU5NGNl"
+# Standard Global Sandbox Credentials (Use these to fix the 400 error)
+PHONEPE_MERCHANT_ID = "PGCHECKOUT"
+PHONEPE_CLIENT_ID = "PGCHECKOUT"
+PHONEPE_CLIENT_SECRET = "YzU1YTM4OGYtM2ZlOS00NDg1LWE2ZTYtZWMxNTdkOTdlZTUw"
 
-# 2. Double check this URL (must be 'v1/oauth/token' for Sandbox)
-
+# Keep these as they are
 PHONEPE_AUTH_URL = "https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token"
-
-# 3. This is usually the part before the underscore in your Client ID
-PHONEPE_MERCHANT_ID = "M23AVHQZQN8J3"
+PHONEPE_PAY_URL = "https://api-preprod.phonepe.com/apis/pg-sandbox/v1/pay"
 
 # 3. APPLICATION DEFINITION
 INSTALLED_APPS = [

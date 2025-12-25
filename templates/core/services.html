@@ -57,9 +57,9 @@
                         <form id="order-form" method="POST" enctype="multipart/form-data">
                             {% csrf_token %}
                             <input type="hidden" id="is-user-authenticated" value="{{ user.is_authenticated|yesno:'true,false' }}">
-                            
                             <input type="hidden" name="service_name" id="service_name_input" value="Printing">
                             <input type="hidden" name="total_price_hidden" id="total_price_hidden" value="0">
+                            <input type="hidden" name="page_count" id="page_count_hidden" value="0">
 
                             <div class="row g-3">
                                 <div class="col-lg-6">
@@ -202,6 +202,7 @@
 </style>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     let T = 0; 
     let currentService = "Printing";
@@ -215,7 +216,6 @@
         "Custom Printing": `<div class="col-6 text-muted">4in1: ₹1.7/s</div><div class="col-6 text-muted">8in1(S): ₹3/s</div><div class="col-6 text-muted">8in1(D): ₹5/s</div><div class="col-6 text-muted">9in1(S): ₹3/s</div>`,
     };
 
-    // --- LOGIN CHECK BEFORE FILE SELECTION ---
     function checkLoginBeforeUpload(event) {
         const isAuth = $('#is-user-authenticated').val() === 'true';
         if (!isAuth) {
@@ -263,46 +263,60 @@
 
     function handleHashNavigation() {
         const hash = window.location.hash;
-        if (hash === '#Printing') {
-            selectService($('#tab-Printing')[0], 'Printing', '#0d6efd', 'fa-print');
-        } else if (hash === '#Spiral') {
-            selectService($('#tab-Spiral')[0], 'Spiral Binding', '#6610f2', 'fa-book-open');
-        } else if (hash === '#Soft') {
-            selectService($('#tab-Soft')[0], 'Soft Binding', '#d63384', 'fa-book');
-        } else if (hash === '#Custom') {
-            selectService($('#tab-Custom')[0], 'Custom Printing', '#fd7e14', 'fa-sliders-h');
-        } else {
-            selectService($('#tab-Printing')[0], 'Printing', '#0d6efd', 'fa-print');
-        }
+        if (hash === '#Printing') selectService($('#tab-Printing')[0], 'Printing', '#0d6efd', 'fa-print');
+        else if (hash === '#Spiral') selectService($('#tab-Spiral')[0], 'Spiral Binding', '#6610f2', 'fa-book-open');
+        else if (hash === '#Soft') selectService($('#tab-Soft')[0], 'Soft Binding', '#d63384', 'fa-book');
+        else if (hash === '#Custom') selectService($('#tab-Custom')[0], 'Custom Printing', '#fd7e14', 'fa-sliders-h');
+        else selectService($('#tab-Printing')[0], 'Printing', '#0d6efd', 'fa-print');
         
         if(hash) {
-            $('html, body').animate({
-                scrollTop: $("#form-container").offset().top - 100
-            }, 500);
+            $('html, body').animate({ scrollTop: $("#form-container").offset().top - 100 }, 500);
         }
     }
 
+    function submitOrderAll() {
+        const form = $('<form>', { action: "{% url 'order_all' %}", method: 'POST' });
+        form.append($('<input>', { type: 'hidden', name: 'csrfmiddlewaretoken', value: '{{ csrf_token }}' }));
+        $('body').append(form);
+        form.submit();
+    }
+
+    // --- 🚀 FINAL PIN-TO-PIN VALIDATION ENGINE ---
     function processCart(isDirectOrder) {
-        if ($('#is-user-authenticated').val() === 'false') {
+        const isAuth = $('#is-user-authenticated').val() === 'true';
+        if (!isAuth) {
             alert("User must be login before uploading the document.");
             window.location.href = "{% url 'login' %}?next=" + encodeURIComponent(window.location.pathname + window.location.hash);
             return;
         }
 
-        const nameVal = $('#user_name').val();
-        const mobileVal = $('#user_mobile').val();
-        const locVal = $('#location').val();
-
-        if(!T) { alert("Please upload a PDF or Image first!"); return; }
-        if(!locVal) { alert("Please select a pickup location!"); return; }
-        if(!/^[A-Za-z\s]+$/.test(nameVal)) { alert("Name should only contain letters!"); return; }
-        if(!/^\d{10}$/.test(mobileVal)) { alert("Mobile should be exactly 10 digits!"); return; }
-
-        let formData = new FormData($('#order-form')[0]);
-        let currentType = $('#print_type').val();
-        if(currentType === 'custom_split'){
-            formData.set('print_mode', 'custom_split'); 
+        // 1. PRIORITY 1: Check File Upload
+        if (!T || T === 0) { 
+            alert("Please upload a PDF or Image file first!"); 
+            return; 
         }
+
+        // 2. PRIORITY 2: Check Location Selection
+        const locationSelected = $('#location').val();
+        if (!locationSelected || locationSelected === "") {
+            alert("Please select your Campus Location.");
+            $('#location').focus();
+            return;
+        }
+
+        // 3. PRIORITY 3: Volume Validation (Pages x Copies)
+        const minRequired = 5;
+        const copies = parseInt($('#copies').val()) || 1;
+        const totalVolume = T * copies;
+
+        if (isDirectOrder && totalVolume < minRequired) {
+            alert(`Minimum volume required: 5 total pages.\n\nYour selection: ${T} pages x ${copies} copies = ${totalVolume} total pages.\n\nPlease increase copies or add more pages to "Order Now".`);
+            isDirectOrder = false; 
+        }
+
+        // --- Execute Ajax ---
+        let formData = new FormData($('#order-form')[0]);
+        formData.set('page_count', T);
 
         $.ajax({
             url: "{% url 'add_to_cart' %}",
@@ -311,20 +325,11 @@
             processData: false,
             contentType: false,
             success: function(res) {
-                if(res.success) {
-                    if(isDirectOrder) {
-                        let tempForm = $('<form action="{% url 'order_all' %}" method="POST">{% csrf_token %}</form>');
-                        $('body').append(tempForm);
-                        tempForm.submit();
-                    } else {
-                        window.location.href = "{% url 'cart' %}";
-                    }
-                }
-            },
-            error: function(xhr) {
-                if(xhr.status === 401) {
-                    alert("Session expired. Please login again.");
-                    window.location.href = "{% url 'login' %}";
+                if (res.success) {
+                    if (isDirectOrder) submitOrderAll();
+                    else window.location.href = "{% url 'cart' %}";
+                } else {
+                    alert("Submission failed. Please try again.");
                 }
             }
         });
@@ -348,18 +353,16 @@
     $('#layout_type').change(handleNupRules);
     $('#print_type').change(toggleSplitField);
 
-    // --- UPLOAD HANDLER FOR PDF & IMAGES ---
     $('#document').change(function(e) {
         let file = e.target.files[0];
         if (!file) return;
 
         $('#upload-ui').addClass('d-none');
         $('#preview-wrapper').removeClass('d-none');
-        $('#pdf-preview-canvas').addClass('d-none');
-        $('#image-preview-tag').addClass('d-none');
 
         if (file.type === "application/pdf") {
             $('#pdf-preview-canvas').removeClass('d-none');
+            $('#image-preview-tag').addClass('d-none');
             let formData = new FormData();
             formData.append('document', file);
             formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
@@ -368,7 +371,11 @@
                 type: "POST", data: formData, processData: false, contentType: false,
                 success: function(res) {
                     if(res.success) {
-                        T = res.pages; $('#page-num-display').text(T); $('#page-count-badge').removeClass('invisible'); calculateFinalPrice();
+                        T = res.pages; 
+                        $('#page-num-display').text(T); 
+                        $('#page_count_hidden').val(T);
+                        $('#page-count-badge').removeClass('invisible'); 
+                        calculateFinalPrice();
                     }
                 }
             });
@@ -386,13 +393,13 @@
                 });
             };
             reader.readAsArrayBuffer(file);
-        } 
-        else if (file.type.startsWith("image/")) {
+        } else if (file.type.startsWith("image/")) {
             $('#image-preview-tag').removeClass('d-none');
+            $('#pdf-preview-canvas').addClass('d-none');
             T = 1; 
             $('#page-num-display').text(T);
+            $('#page_count_hidden').val(T);
             $('#page-count-badge').removeClass('invisible');
-            
             let reader = new FileReader();
             reader.onload = function(e) {
                 $('#image-preview-tag').attr('src', e.target.result);
@@ -443,7 +450,7 @@
                 });
 
                 if (T > 0 && isInvalid) {
-                    alert("Error: One or more page numbers entered exceed total PDF page count.");
+                    alert("Error: Page numbers entered exceed total PDF page count.");
                     $('#custom_color_input').val("");
                     calculateFinalPrice();
                     return;

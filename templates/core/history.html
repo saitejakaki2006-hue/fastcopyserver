@@ -4,7 +4,7 @@
 {% block content %}
 <section class="py-24 min-h-screen bg-slate-50/50">
     <div class="container mx-auto px-4">
-        <div class="max-w-4xl mx-auto">
+        <div class="max-w-5xl mx-auto">
             <div class="mb-12 text-center" data-aos="fade-down">
                 <h1 class="text-4xl font-black italic tracking-tighter text-slate-900 mb-2">ORDER <span class="text-blue-600">HISTORY</span></h1>
                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Your lifetime print logs</p>
@@ -17,21 +17,64 @@
                         <thead class="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
                             <tr>
                                 <th class="pb-4">Order ID</th>
-                                <th class="pb-4">Document/Service</th>
-                                <th class="pb-4">Date</th>
-                                <th class="pb-4">Total Amount</th>
+                                <th class="pb-4">Service</th>
+                                <th class="pb-4">Configuration</th> <th class="pb-4">Date</th>
+                                <th class="pb-4">Amount</th>
                                 <th class="pb-4 text-end">Status</th>
                             </tr>
                         </thead>
                         <tbody class="text-xs font-bold text-slate-600">
                             {% for order in orders %}
-                            <tr class="border-b border-slate-50 last:border-0">
+                            <tr class="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
                                 <td class="py-5 font-black text-blue-600">#{{ order.order_id }}</td>
-                                <td>{{ order.service_name }}</td>
-                                <td class="text-slate-400">{{ order.created_at|date:"d M Y, h:i A" }}</td>
-                                <td class="font-black text-slate-900">₹{{ order.total_price }}</td>
+                                
+                                <td>
+                                    <div class="flex flex-col">
+                                        <span class="text-slate-900 uppercase tracking-tight">{{ order.service_name }}</span>
+                                        <span class="text-[9px] text-slate-400 uppercase tracking-tighter">{{ order.location }}</span>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="flex flex-wrap gap-1">
+                                        {% if "custom" in order.print_mode.lower %}
+                                            <span class="px-2 py-1 bg-orange-50 text-orange-600 border border-orange-100 rounded text-[9px] font-black uppercase">
+                                                CUSTOM SPLIT
+                                            </span>
+                                        {% elif order.print_mode == 'bw' %}
+                                            <span class="px-2 py-1 bg-slate-100 text-slate-600 border border-slate-200 rounded text-[9px] font-black uppercase">
+                                                B&W
+                                            </span>
+                                        {% else %}
+                                            <span class="px-2 py-1 bg-blue-50 text-blue-600 border border-blue-100 rounded text-[9px] font-black uppercase">
+                                                COLOR
+                                            </span>
+                                        {% endif %}
+
+                                        <span class="px-2 py-1 bg-slate-100 text-slate-500 rounded text-[9px] font-black uppercase">
+                                            {{ order.copies }} Qty
+                                        </span>
+
+                                        {% if order.custom_color_pages %}
+                                        <div class="w-full mt-1">
+                                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter mb-0">
+                                                Color Pages: <span class="text-orange-500">{{ order.custom_color_pages }}</span>
+                                            </p>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+
+                                <td class="text-slate-400">{{ order.created_at|date:"d M Y" }}<br><span class="text-[9px] opacity-70">{{ order.created_at|date:"h:i A" }}</span></td>
+                                
+                                <td class="font-black text-slate-900 text-sm">₹{{ order.total_price }}</td>
+                                
                                 <td class="text-end">
-                                    <span class="px-4 py-1.5 {% if order.status == 'Delivered' %}bg-green-100 text-green-600{% else %}bg-blue-50 text-blue-600{% endif %} rounded-full text-[8px] font-black uppercase">
+                                    <span class="px-4 py-1.5 rounded-full text-[8px] font-black uppercase 
+                                        {% if order.status == 'Delivered' %} bg-green-100 text-green-600 
+                                        {% elif order.status == 'Rejected' %} bg-red-100 text-red-600
+                                        {% elif order.status == 'Ready' %} bg-orange-100 text-orange-600
+                                        {% else %} bg-blue-50 text-blue-600 {% endif %}">
                                         {{ order.status }}
                                     </span>
                                 </td>
@@ -55,7 +98,7 @@
             {% endif %}
 
             <div class="mt-10 text-center">
-                <a href="{% url 'profile' %}" class="text-[9px] font-black text-slate-400 uppercase tracking-widest no-underline hover:text-blue-600">
+                <a href="{% url 'profile' %}" class="text-[9px] font-black text-slate-400 uppercase tracking-widest no-underline hover:text-blue-600 transition-colors">
                     <i class="fa-solid fa-arrow-left mr-2"></i> Back to Dashboard
                 </a>
             </div>

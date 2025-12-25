@@ -22,8 +22,8 @@
                 </p>
 
                 <div class="space-y-3">
-                    <a href="{% url 'checkout_summary' order_id|default:order.id %}" class="btn-3d block w-full bg-blue-600 text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] no-underline shadow-lg hover:bg-blue-700 transition-all">
-                        Try Again <i class="fa-solid fa-rotate-right ml-2"></i>
+                   <a href="{% url 'checkout_summary' order.id %}" class="btn-3d ...">
+                        Try Again
                     </a>
                     
                     <a href="{% url 'contact' %}" class="block text-[9px] font-black text-slate-400 uppercase tracking-widest hover:text-blue-600 no-underline">
