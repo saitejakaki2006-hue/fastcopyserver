@@ -9,17 +9,11 @@ SECRET_KEY = 'django-insecure-6zu4gfg3+vl-_*n8alvnmq#!kt-6+o9&r-w+$@0hzg76_50o9!
 DEBUG = True
 ALLOWED_HOSTS = []
 
-# settings.py
-
-
-# Standard Global Sandbox Credentials (Use these to fix the 400 error)
-PHONEPE_MERCHANT_ID = "PGCHECKOUT"
-PHONEPE_CLIENT_ID = "PGCHECKOUT"
-PHONEPE_CLIENT_SECRET = "YzU1YTM4OGYtM2ZlOS00NDg1LWE2ZTYtZWMxNTdkOTdlZTUw"
-
-# Keep these as they are
-PHONEPE_AUTH_URL = "https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token"
-PHONEPE_PAY_URL = "https://api-preprod.phonepe.com/apis/pg-sandbox/v1/pay"
+# --- 💳 CASHFREE PAYMENT GATEWAY CONFIG (Test Environment) ---
+CASHFREE_APP_ID = "TEST1093498216f1366473dc23b3944128943901"
+CASHFREE_SECRET_KEY = "cfsk_ma_test_0b9ab70120232dc4e71a533ea085249e_5d421d69"
+CASHFREE_API_VERSION = "2023-08-01"
+CASHFREE_API_URL = "https://sandbox.cashfree.com/pg"
 
 # 3. APPLICATION DEFINITION
 INSTALLED_APPS = [
@@ -56,6 +50,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.cart_count',  # Cart count globally available
             ],
         },
     },
@@ -63,17 +58,26 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'fastCopyConfig.wsgi.application'
 
-# 5. DATABASE (MySQL Configuration)
+# 5. DATABASE (SQLite Configuration - For Testing)
+# Note: Switch back to MySQL for production
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'fastCopyDatabase',
-        'USER': 'root',
-        'PASSWORD': 'PhaniUddagiri@2005',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# MySQL Configuration (Commented out)
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'fastCopyDatabase',
+#         'USER': 'root',
+#         'PASSWORD': 'PhaniUddagiri@2005',
+#         'HOST': 'localhost',
+#         'PORT': '3306',
+#     }
+# }
 
 # 6. PASSWORD VALIDATION
 AUTH_PASSWORD_VALIDATORS = [
@@ -111,11 +115,3 @@ LOGIN_REDIRECT_URL = 'home'
 
 # Optional: If you want to redirect them to home after logging out too
 LOGOUT_REDIRECT_URL = 'home'
-
-# --- 💳 PHONEPE GATEWAY CONFIG ---
-PHONEPE_MERCHANT_ID = "PGMDATA" # Replace with your Merchant ID
-PHONEPE_SALT_KEY = "YOUR_SALT_KEY" # Replace with your Salt Key
-PHONEPE_SALT_INDEX = "1" # Usually '1'
-
-# Sandbox URL for testing
-PHONEPE_API_URL = "https://api-preprod.phonepe.com/apis/pg-sandbox/v1/pay"

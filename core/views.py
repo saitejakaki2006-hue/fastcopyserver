@@ -402,7 +402,7 @@ def cart_checkout_summary(request):
     grand_total = sum(float(i.get('total_price', 0)) for i in items)
     return render(request, 'core/checkout.html', {'cart_items': items, 'grand_total': round(grand_total, 2), 'items_count': len(items)})
 
-# --- 💳 4. PHONEPE GATEWAY INTEGRATION ---
+# --- 💳 4. CASHFREE GATEWAY INTEGRATION ---
 
 
 
@@ -413,7 +413,7 @@ def initiate_payment(request):
     1. Identifies source (Direct vs Cart) via batch_txn_id prefix.
     2. For DIRECT orders: Automatically adds to DB Cart BEFORE payment to handle "Back" or "Close Tab" scenarios.
     3. Records Pending Order in DB for history tracking.
-    4. Redirects to PhonePe gateway.
+    4. Redirects to Cashfree gateway.
     """
     batch_txn_id = request.session.get('pending_batch_id')
     direct_item = request.session.get('direct_item')
@@ -430,21 +430,26 @@ def initiate_payment(request):
         # PRE-EMPTIVE BACKUP: Add to DB Cart immediately.
         # This covers the "Back" button or "Close Window" scenario.
         if direct_item:
-            CartItem.objects.get_or_create(
+            # Delete any existing duplicates first
+            CartItem.objects.filter(
+                user=request.user,
+                document_name=direct_item.get('document_name')
+            ).delete()
+            
+            # Create fresh CartItem
+            CartItem.objects.create(
                 user=request.user,
                 document_name=direct_item.get('document_name'),
-                defaults={
-                    'service_name': direct_item.get('service_name'),
-                    'total_price': direct_item.get('total_price'),
-                    'temp_path': direct_item.get('temp_path'),
-                    'temp_image_path': direct_item.get('temp_image_path'),
-                    'copies': direct_item.get('copies'),
-                    'pages': direct_item.get('pages', 1),
-                    'location': direct_item.get('location'),
-                    'print_mode': direct_item.get('print_mode'),
-                    'side_type': direct_item.get('side_type'),
-                    'custom_color_pages': direct_item.get('custom_color_pages')
-                }
+                service_name=direct_item.get('service_name'),
+                total_price=direct_item.get('total_price'),
+                temp_path=direct_item.get('temp_path'),
+                temp_image_path=direct_item.get('temp_image_path'),
+                copies=direct_item.get('copies'),
+                pages=direct_item.get('pages', 1),
+                location=direct_item.get('location'),
+                print_mode=direct_item.get('print_mode'),
+                side_type=direct_item.get('side_type'),
+                custom_color_pages=direct_item.get('custom_color_pages')
             )
     else:
         # Source: Cart Page (Order All)
@@ -474,38 +479,81 @@ def initiate_payment(request):
                 }
             )
 
-    # --- 💳 PHONEPE API: Handshake ---
+    # --- 💳 CASHFREE API: Create Order ---
     grand_total = sum(float(i.get('total_price', 0)) for i in items_to_process)
-    amount_paisa = int(grand_total * 100)
     callback_url = f"{request.scheme}://{request.get_host()}/payment/callback/"
 
+    # Get user profile mobile or use default
+    try:
+        user_mobile = request.user.profile.mobile if hasattr(request.user, 'profile') else "9999999999"
+    except:
+        user_mobile = "9999999999"
+    
+    # Ensure phone has country code
+    if not user_mobile.startswith('91'):
+        user_mobile = f"91{user_mobile}"
+
+    # Cashfree Order Payload
     payload = {
-        "merchantId": settings.PHONEPE_MERCHANT_ID,
-        "merchantTransactionId": batch_txn_id,
-        "merchantUserId": f"U{request.user.id}",
-        "amount": amount_paisa,
-        "redirectUrl": callback_url,
-        "redirectMode": "POST",
-        "callbackUrl": callback_url,
-        "paymentInstrument": {"type": "PAY_PAGE"}
+        "order_id": batch_txn_id,
+        "order_amount": float(grand_total),
+        "order_currency": "INR",
+        "customer_details": {
+            "customer_id": f"CUST_{request.user.id}",
+            "customer_name": request.user.first_name or request.user.username,
+            "customer_email": request.user.email or f"user{request.user.id}@fastcopy.local",
+            "customer_phone": user_mobile
+        },
+        "order_meta": {
+            "return_url": callback_url,
+            "notify_url": callback_url
+        }
     }
 
-    base64_payload = base64.b64encode(json.dumps(payload).encode()).decode()
-    verify_str = base64_payload + "/pg/v1/pay" + settings.PHONEPE_SALT_KEY
-    checksum = hashlib.sha256(verify_str.encode()).hexdigest() + "###" + settings.PHONEPE_SALT_INDEX
-
-    headers = {"Content-Type": "application/json", "X-VERIFY": checksum, "accept": "application/json"}
+    # Cashfree Authentication Headers
+    headers = {
+        "Content-Type": "application/json",
+        "x-api-version": settings.CASHFREE_API_VERSION,
+        "x-client-id": settings.CASHFREE_APP_ID,
+        "x-client-secret": settings.CASHFREE_SECRET_KEY
+    }
     
     try:
-        response = requests.post(settings.PHONEPE_API_URL, json={"request": base64_payload}, headers=headers)
+        # Create Order API Call
+        response = requests.post(
+            f"{settings.CASHFREE_API_URL}/orders",
+            json=payload,
+            headers=headers
+        )
         res_json = response.json()
-        if res_json.get('success'):
-            return redirect(res_json['data']['instrumentResponse']['redirectInfo']['url'])
+        
+        # Log the response for debugging
+        print(f"Cashfree API Response Status: {response.status_code}")
+        print(f"Cashfree API Response: {res_json}")
+        
+        # Check if order creation was successful
+        if response.status_code == 200 and res_json.get('payment_session_id'):
+            # Store payment session ID in Django session
+            request.session['cashfree_payment_session_id'] = res_json.get('payment_session_id')
+            request.session['cashfree_order_id'] = batch_txn_id
+            request.session.modified = True
+            
+            # Redirect to Cashfree checkout template (will use JS SDK)
+            return redirect('cashfree_checkout')
         else:
+            # Order creation failed
+            error_msg = res_json.get('message', 'Unknown error')
+            print(f"Cashfree Error: {error_msg}")
+            messages.error(request, f"Payment initiation failed: {error_msg}")
             Order.objects.filter(transaction_id=batch_txn_id).update(payment_status="Failed", status="Cancelled")
             return redirect('cart')
-    except Exception:
+    except Exception as e:
+        print(f"Exception during Cashfree API call: {str(e)}")
+        messages.error(request, f"Payment gateway error: {str(e)}")
+        Order.objects.filter(transaction_id=batch_txn_id).update(payment_status="Failed", status="Cancelled")
         return redirect('cart')
+
+
 
 @login_required(login_url='login')
 def bypass_payment(request):
@@ -567,48 +615,153 @@ from django.contrib import messages
 @csrf_exempt
 def payment_callback(request):
     """
-    STRICT CALLBACK: Handles failure, triggers flash message, and syncs cart.
+    STRICT CALLBACK: Handles Cashfree payment responses with signature verification.
+    Processes success/failure and triggers appropriate cart/order handling.
     """
-    txn_id = request.POST.get('merchantTransactionId', '')
-    code = request.POST.get('code', '')
+    # Cashfree sends data via GET parameters for return_url
+    # Try multiple parameter names that Cashfree might use
+    if request.method == 'GET':
+        order_id = (request.GET.get('order_id') or 
+                   request.GET.get('orderId') or
+                   request.GET.get('cf_order_id'))
+    else:
+        # For webhook/notify_url, Cashfree sends POST with JSON
+        try:
+            data = json.loads(request.body.decode('utf-8')) if request.body else {}
+            order_id = (data.get('order', {}).get('order_id') or 
+                       data.get('orderId') or
+                       request.POST.get('order_id'))
+        except:
+            order_id = request.POST.get('order_id')
     
+    # Fallback: Try to get from session if not in parameters
+    if not order_id:
+        order_id = request.session.get('cashfree_order_id')
+        print(f"Using order_id from session: {order_id}")
+    
+    # Debug: Print all parameters to see what Cashfree is sending
+    print(f"GET parameters: {dict(request.GET)}")
+    print(f"POST parameters: {dict(request.POST)}")
+    print(f"Extracted order_id: {order_id}")
+    
+    if not order_id:
+        messages.error(request, "Invalid payment callback - missing order ID.")
+        return redirect('cart')
+    
+    # Verify payment status with Cashfree
+    headers = {
+        "Content-Type": "application/json",
+        "x-api-version": settings.CASHFREE_API_VERSION,
+        "x-client-id": settings.CASHFREE_APP_ID,
+        "x-client-secret": settings.CASHFREE_SECRET_KEY
+    }
+    
+    try:
+        # Fetch order details from Cashfree
+        response = requests.get(
+            f"{settings.CASHFREE_API_URL}/orders/{order_id}",
+            headers=headers
+        )
+        
+        if response.status_code != 200:
+            raise Exception("Failed to verify payment status")
+            
+        payment_data = response.json()
+        order_status = payment_data.get('order_status', 'FAILED')
+        
+    except Exception as e:
+        messages.error(request, f"Payment verification failed: {str(e)}")
+        order_status = 'FAILED'
+    
+    # Determine items involved based on order ID prefix
+    txn_id = order_id
     direct_item = request.session.get('direct_item')
     is_direct = txn_id.startswith("DIR") if txn_id else False
     items_involved = [direct_item] if is_direct else request.session.get('cart', [])
 
-    if code == 'PAYMENT_SUCCESS':
+    # --- ✅ SUCCESS CASE ---
+    if order_status == 'PAID':
         process_successful_order(request.user, items_involved, txn_id)
-        # ... (Success cleanup logic) ...
-        messages.success(request, "Order placed successfully!")
+        
+        # Cleanup based on order type
+        if is_direct and direct_item:
+            # Remove pre-emptive DB backup
+            CartItem.objects.filter(
+                user=request.user, 
+                document_name=direct_item.get('document_name')
+            ).delete()
+            if 'direct_item' in request.session:
+                del request.session['direct_item']
+        else:
+            # Clear entire cart
+            request.session['cart'] = []
+            CartItem.objects.filter(user=request.user).delete()
+        
+        if 'pending_batch_id' in request.session:
+            del request.session['pending_batch_id']
+        
+        request.session.modified = True
+        messages.success(request, "Payment successful! Order placed successfully.")
         return redirect('history')
+        
     else:
         # --- ❌ FAILURE CASE ---
         handle_failed_order(request.user, items_involved, txn_id)
         
-        # 1. SET THE MESSAGE: This is what you were missing
+        # Set the error message
         messages.error(
             request, 
             "PAYMENT FAILED: Your transaction could not be completed. Your items are safe in the cart."
         )
         
         if is_direct and direct_item:
-            # Move to DB Cart
-            CartItem.objects.get_or_create(
-                user=request.user,
-                document_name=direct_item.get('document_name'),
-                defaults=direct_item
-            )
-            # Sync Session so UI updates
+            # Ensure item is in DB Cart (already done in initiate_payment)
+            # Sync session cart from database
             db_cart = CartItem.objects.filter(user=request.user)
-            request.session['cart'] = [{k: str(v) if k == 'total_price' else v for k, v in i.__dict__.items() if not k.startswith('_')} for i in db_cart]
+            request.session['cart'] = [{
+                'service_name': i.service_name,
+                'total_price': str(i.total_price),
+                'document_name': i.document_name,
+                'temp_path': i.temp_path,
+                'temp_image_path': i.temp_image_path,
+                'copies': i.copies,
+                'pages': i.pages,
+                'location': i.location,
+                'print_mode': i.print_mode,
+                'side_type': i.side_type,
+                'custom_color_pages': i.custom_color_pages
+            } for i in db_cart]
+            
             if 'direct_item' in request.session:
                 del request.session['direct_item']
 
-        # 2. FORCE SAVE: Ensures the message is written to the DB/Cookie before redirect
+        # Force save to ensure message is written
         request.session.modified = True
         request.session.save() 
         
         return redirect('cart')
+
+    
+@login_required(login_url='login')
+def cashfree_checkout(request):
+    """
+    Renders the Cashfree checkout page with JS SDK.
+    Uses payment_session_id from session to initialize payment.
+    """
+    payment_session_id = request.session.get('cashfree_payment_session_id')
+    order_id = request.session.get('cashfree_order_id')
+    
+    if not payment_session_id:
+        messages.error(request, "Payment session expired. Please try again.")
+        return redirect('cart')
+    
+    context = {
+        'payment_session_id': payment_session_id,
+        'order_id': order_id,
+        'cashfree_env': 'sandbox'  # Change to 'production' for live
+    }
+    return render(request, 'core/cashfree_checkout.html', context)
+
     
 # --- 🌐 5. STATIC PAGES ---
 def home(request): return render(request, 'core/index.html', {'services': Service.objects.all()[:3]})

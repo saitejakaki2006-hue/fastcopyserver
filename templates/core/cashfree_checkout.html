@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card border-0 bg-dark text-white rounded-4 shadow-lg overflow-hidden border-top border-primary border-5"
+                data-aos="zoom-in">
+                <div class="card-body p-5 text-center">
+                    <h2 class="text-uppercase fw-black italic mb-4">Complete <span class="text-primary">Payment</span>
+                    </h2>
+
+                    <div
+                        class="my-4 py-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-25">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="text-white mb-0">Redirecting to secure payment gateway...</p>
+                        <small class="text-muted">Order ID: {{ order_id }}</small>
+                    </div>
+
+                    <div class="mt-4 pt-2">
+                        <p class="text-muted small mb-0 opacity-75">
+                            <i class="fas fa-shield-alt text-primary me-1"></i> Cashfree Secure Payment
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cashfree JS SDK -->
+<script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+
+<script>
+    // Initialize Cashfree SDK
+    const cashfree = Cashfree({
+        mode: "{{ cashfree_env }}"  // "sandbox" or "production"
+    });
+
+    // Payment session ID from backend
+    const paymentSessionId = "{{ payment_session_id }}";
+
+    // Component configuration
+    const checkoutOptions = {
+        paymentSessionId: paymentSessionId,
+        redirectTarget: "_self"  // Redirect in same window
+    };
+
+    // Initiate payment checkout
+    cashfree.checkout(checkoutOptions).then(function (result) {
+        console.log("Payment initiated", result);
+
+        if (result.error) {
+            console.error("Payment initiation error:", result.error);
+            alert("Payment could not be processed. Please try again.");
+            window.location.href = "{% url 'cart' %}";
+        }
+
+        if (result.redirect) {
+            console.log("Payment redirect URL:", result.paymentDetails);
+        }
+    });
+</script>
+
+<style>
+    .fw-black {
+        font-weight: 900;
+    }
+
+    .italic {
+        font-style: italic;
+    }
+</style>
+{% endblock %}
