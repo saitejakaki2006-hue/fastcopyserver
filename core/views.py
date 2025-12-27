@@ -1,4 +1,4 @@
-import io, uuid, PyPDF2, base64, json, requests, hashlib
+import io, uuid, PyPDF2, base64, json, requests, hashlib, time
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth import login, logout, authenticate
@@ -15,36 +15,41 @@ from .models import Service, Order, UserProfile, CartItem
 
 # --- 🚀 0. CORE LOGIC ENGINES (Success/Failure/Helper) ---
 
-
-
 def handle_failed_order(user, items_list, txn_id, reason="Payment Failed"):
     """
-    Atomically handles payment failure.
-    1. Creates 'Cancelled' order records for history.
-    2. STRICT ISOLATION: If it was a Direct Order (DIR prefix), 
-       restores ONLY those items to the database CartItem table.
+    DATABASE UPDATE LOGIC:
+    Targets specific records by txn_id and document name to update statuses.
+    Ensures 'Failed' and 'Cancelled' reflect in the database and user history.
     """
+    if not txn_id:
+        return None
+
     with transaction.atomic():
         last_order = None
         for item in items_list:
             if not item: 
                 continue
                 
-            last_order = Order.objects.create(
-                user=user,
-                service_name=item.get('service_name'),
-                total_price=float(item.get('total_price', 0)),
-                location=item.get('location'),
-                print_mode=item.get('print_mode'),
-                side_type=item.get('side_type'),
-                copies=item.get('copies'),
-                custom_color_pages=item.get('custom_color_pages'),
+            # Update the existing Pending record or create a new Cancelled one if not found
+            last_order, created = Order.objects.update_or_create(
                 transaction_id=txn_id,
-                payment_status="Failed",
-                status="Cancelled"
+                document=item.get('document_name'),
+                defaults={
+                    'user': user,
+                    'service_name': item.get('service_name'),
+                    'total_price': float(item.get('total_price', 0)),
+                    'location': item.get('location'),
+                    'print_mode': item.get('print_mode'),
+                    'side_type': item.get('side_type'),
+                    'copies': item.get('copies'),
+                    'pages': item.get('pages', 1),
+                    'custom_color_pages': item.get('custom_color_pages'),
+                    'payment_status': "Failed", # <-- Permanent DB Status
+                    'status': "Cancelled"       # <-- Permanent DB Status
+                }
             )
             
-            # [STRICT REQUIREMENT] Restore to DB Cart only if it was a Direct Service-Page Order.
+            # [STRICT] Restore to DB Cart if it was a Direct Order so user doesn't lose progress
             if txn_id.startswith("DIR"):
                 CartItem.objects.get_or_create(
                     user=user,
@@ -66,15 +71,12 @@ def handle_failed_order(user, items_list, txn_id, reason="Payment Failed"):
 
 def process_successful_order(user, items_list, txn_id):
     """
-    Moves temp files to permanent Order records and clears temp storage.
-    [ISOLATION RULE]: Only processes the items passed in items_list.
-    [STATUS UPDATE]: Sets the initial order status to 'Pending' for admin review.
+    DATABASE UPDATE LOGIC:
+    Updates records to 'Success' and 'Pending' (for admin processing).
     """
-    last_order = None
     with transaction.atomic():
         for item in items_list:
-            if not item:
-                continue
+            if not item: continue
                 
             saved_pdf, saved_img = None, None
             path = item.get('temp_path') or item.get('temp_image_path')
@@ -82,42 +84,37 @@ def process_successful_order(user, items_list, txn_id):
             if path and default_storage.exists(path):
                 with default_storage.open(path) as f:
                     content = ContentFile(f.read(), name=item['document_name'])
-                    if item.get('temp_path'):
-                        saved_pdf = content
-                    else:
-                        saved_img = content
+                    if item.get('temp_path'): saved_pdf = content
+                    else: saved_img = content
             
-            # Create the permanent order record with status 'Pending'
-            last_order = Order.objects.create(
-                user=user, 
-                service_name=item['service_name'], 
-                total_price=float(item['total_price']),
-                location=item['location'], 
-                print_mode=item['print_mode'], 
-                side_type=item['side_type'],
-                copies=item['copies'], 
-                custom_color_pages=item.get('custom_color_pages', ''),
-                transaction_id=txn_id, 
-                document=saved_pdf, 
-                image_upload=saved_img,
-                payment_status="Success", 
-                status="Pending"  # Updated from 'Confirmed' to 'Pending'
+            Order.objects.update_or_create(
+                transaction_id=txn_id,
+                document=item.get('document_name'),
+                defaults={
+                    'user': user,
+                    'service_name': item['service_name'],
+                    'total_price': float(item['total_price']),
+                    'location': item['location'],
+                    'print_mode': item['print_mode'],
+                    'side_type': item['side_type'],
+                    'copies': item['copies'],
+                    'custom_color_pages': item.get('custom_color_pages', ''),
+                    'payment_status': "Success",
+                    'status': "Pending",
+                    'document': saved_pdf,
+                    'image_upload': saved_img,
+                }
             )
             
-            # [CLEANUP] Delete temp files for these specific items
             if item.get('temp_path') and default_storage.exists(item['temp_path']):
                 default_storage.delete(item['temp_path'])
             if item.get('temp_image_path') and default_storage.exists(item['temp_image_path']):
                 default_storage.delete(item['temp_image_path'])
-                
-    return last_order
 
 # --- 👤 1. AUTHENTICATION & PROFILE ---
 
 def register_view(request):
-    if request.user.is_authenticated: 
-        return redirect('home')
-        
+    if request.user.is_authenticated: return redirect('home')
     if request.method == "POST":
         full_name = request.POST.get('name', '').strip()
         mobile = request.POST.get('mobile', '').strip()
@@ -125,30 +122,14 @@ def register_view(request):
         password = request.POST.get('password', '')
         address = request.POST.get('address', '').strip()
 
-        # Validation
         if User.objects.filter(username=mobile).exists():
             messages.error(request, "Mobile number already registered.")
             return redirect('register')
 
-        # 1. Create the Base User (Stores Name and Email)
-        user = User.objects.create_user(
-            username=mobile, 
-            password=password, 
-            first_name=full_name,
-            email=email
-        )
-
-        # 2. Create the User Profile (Stores Mobile and Address)
-        # Note: fc_user_id is generated automatically in models.py
-        UserProfile.objects.create(
-            user=user, 
-            mobile=mobile,
-            address=address
-        )
-
+        user = User.objects.create_user(username=mobile, password=password, first_name=full_name, email=email)
+        UserProfile.objects.create(user=user, mobile=mobile, address=address)
         messages.success(request, "Account created successfully! Please login.")
         return redirect('login')
-        
     return render(request, 'core/register.html')
 
 def login_view(request):
@@ -158,13 +139,7 @@ def login_view(request):
         user = authenticate(request, username=mobile, password=pw)
         if user:
             login(request, user)
-            db_items = CartItem.objects.filter(user=request.user)
-            request.session['cart'] = [{
-                'service_name': i.service_name, 'total_price': str(i.total_price), 'document_name': i.document_name,
-                'temp_path': i.temp_path, 'temp_image_path': i.temp_image_path, 'copies': i.copies, 'pages': i.pages,
-                'location': i.location, 'print_mode': i.print_mode, 'side_type': i.side_type, 'custom_color_pages': i.custom_color_pages
-            } for i in db_items]
-            return redirect('home')
+            return redirect('cart') 
         messages.error(request, "Invalid login credentials.")
     return render(request, 'core/login.html')
 
@@ -175,63 +150,28 @@ def logout_view(request):
 def profile_view(request):
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
-    
-    context = {
-        'profile': profile,
-        'user_name': request.user.first_name,
-        'user_email': request.user.email,
-        'recent_bookings': orders[:5],
-    }
+    context = {'profile': profile, 'user_name': request.user.first_name, 'user_email': request.user.email, 'recent_bookings': orders[:5]}
     return render(request, 'core/profile.html', context)
 
 @login_required(login_url='login')
 def edit_profile(request):
     profile = get_object_or_404(UserProfile, user=request.user)
-    
     if request.method == "POST":
-        # Get data from form
-        new_name = request.POST.get('name')
-        new_email = request.POST.get('email')
-        new_mobile = request.POST.get('mobile')
-        new_address = request.POST.get('address')
-
-        # 1. Update Django Auth User table (Name & Email)
-        request.user.first_name = new_name
-        request.user.email = new_email
-        # If mobile changes, username must also change to stay in sync
-        request.user.username = new_mobile 
+        request.user.first_name = request.POST.get('name')
+        request.user.email = request.POST.get('email')
+        request.user.username = request.POST.get('mobile') 
         request.user.save()
-
-        # 2. Update UserProfile table (Mobile & Address)
-        profile.mobile = new_mobile
-        profile.address = new_address
+        profile.mobile = request.POST.get('mobile')
+        profile.address = request.POST.get('address')
         profile.save()
-
-        messages.success(request, "Your profile details have been updated successfully!")
+        messages.success(request, "Updated successfully!")
         return redirect('profile')
-        
     return render(request, 'core/edit_profile.html', {'profile': profile})
 
 @login_required(login_url='login')
 def history_view(request):
-    """
-    MASTER TRANSACTION LOG:
-    Fetches all orders associated with the logged-in user.
-    Ordered by '-created_at' to show the most recent activity at the top.
-    Includes filtering for Pending, Success, and Cancelled states.
-    """
-    # 1. Fetch all orders for the user
     all_orders = Order.objects.filter(user=request.user).order_by('-created_at')
-
-    # 2. Context metadata for the UI
-    context = {
-        'orders': all_orders,
-        'total_orders_count': all_orders.count(),
-        # Optimization: Only count active/pending orders for a "Processing" badge if needed
-        'active_count': all_orders.filter(status__in=['Pending', 'Confirmed', 'Ready']).count(),
-    }
-
-    return render(request, 'core/history.html', context)
+    return render(request, 'core/history.html', {'orders': all_orders})
 
 # --- 🛒 2. CART & PDF ENGINE ---
 
@@ -247,108 +187,10 @@ def add_to_cart(request):
     if request.method == "POST" and request.user.is_authenticated:
         uploaded_file = request.FILES.get('document')
         if not uploaded_file: return JsonResponse({'success': False})
-        page_count = int(request.POST.get('page_count', 1))
         file_path = default_storage.save(f'temp/{uuid.uuid4()}_{uploaded_file.name}', ContentFile(uploaded_file.read()))
-        
         service_name = request.POST.get('service_name')
         print_mode = request.POST.get('print_mode', 'B&W')
-        layout = request.POST.get('layout_type')
-        if service_name == "Custom Printing" and layout:
-            print_mode = f"{print_mode}({layout})"
-
         item = {
-            'service_name': service_name, 'total_price': request.POST.get('total_price_hidden'),
-            'document_name': uploaded_file.name, 'temp_path': file_path if uploaded_file.name.endswith('.pdf') else None,
-            'temp_image_path': file_path if not uploaded_file.name.endswith('.pdf') else None, 
-            'copies': int(request.POST.get('copies', 1)), 'pages': page_count, 'location': request.POST.get('location'),
-            'print_mode': print_mode, 'side_type': request.POST.get('side_type', 'single'),
-            'custom_color_pages': request.POST.get('custom_color_pages', ''),
-        }
-        CartItem.objects.create(user=request.user, **item)
-        cart = request.session.get('cart', []); cart.append(item); request.session['cart'] = cart; request.session.modified = True
-        return JsonResponse({'success': True})
-    return JsonResponse({'success': False}, status=401)
-
-@login_required(login_url='login')
-def cart_page(request):
-    """
-    DATABASE-FIRST CART VIEW:
-    Fetches directly from the CartItem table to ensure 100% sync
-    with failed-payment restorations.
-    """
-    # 1. Fetch from Database (This is the fix)
-    db_items = CartItem.objects.filter(user=request.user).order_by('-created_at')
-    
-    # 2. Sync the session so the Navbar count is correct
-    cart_list = []
-    for i in db_items:
-        cart_list.append({
-            'service_name': i.service_name,
-            'total_price': str(i.total_price),
-            'document_name': i.document_name,
-            'temp_path': i.temp_path,
-            'temp_image_path': i.temp_image_path,
-            'copies': i.copies,
-            'pages': i.pages,
-            'location': i.location,
-            'print_mode': i.print_mode,
-            'side_type': i.side_type,
-            'custom_color_pages': i.custom_color_pages,
-        })
-    request.session['cart'] = cart_list
-    request.session.modified = True
-
-    # 3. Calculate Totals
-    total_bill = sum(float(i.total_price) for i in db_items)
-    total_eff_pages = sum(int(i.pages) * int(i.copies) for i in db_items)
-
-    context = {
-        'cart_items': cart_list, 
-        'total_bill': round(total_bill, 2),
-        'total_pages': total_eff_pages,
-        'min_required': 5,
-        'remaining_pages': max(0, 5 - total_eff_pages)
-    }
-    return render(request, 'core/cart.html', context)
-
-@login_required(login_url='login')
-def remove_from_cart(request, item_id):
-    cart = request.session.get('cart', [])
-    if 0 <= item_id < len(cart):
-        item = cart.pop(item_id)
-        CartItem.objects.filter(user=request.user, document_name=item.get('document_name')).delete()
-        request.session['cart'] = cart; request.session.modified = True
-    return redirect('cart')
-
-# --- 🚀 3. ORDER & CHECKOUT FLOW ---
-
-@login_required(login_url='login')
-def order_all(request):
-    cart = request.session.get('cart', [])
-    if not cart:
-        messages.error(request, "Your cart is empty.")
-        return redirect('cart')
-    # Isolation: Ensure direct item session is cleared when checking out from cart
-    if 'direct_item' in request.session:
-        del request.session['direct_item']
-    request.session['pending_batch_id'] = f"TXN_{uuid.uuid4().hex[:10].upper()}"
-    request.session.modified = True
-    return redirect('cart_checkout_summary')
-
-@login_required(login_url='login')
-def order_now(request):
-    """Path for SERVICE PAGE item only. Ignores Cart."""
-    if request.method == "POST":
-        uploaded_file = request.FILES.get('document')
-        if not uploaded_file: return redirect('services')
-        file_path = default_storage.save(f'temp/direct_{uuid.uuid4()}_{uploaded_file.name}', ContentFile(uploaded_file.read()))
-        service_name = request.POST.get('service_name')
-        print_mode = request.POST.get('print_mode', 'B&W')
-        layout = request.POST.get('layout_type')
-        if service_name == "Custom Printing" and layout:
-            print_mode = f"{print_mode}({layout})"
-
-        request.session['direct_item'] = {
             'service_name': service_name, 'total_price': request.POST.get('total_price_hidden'),
             'document_name': uploaded_file.name, 'temp_path': file_path if uploaded_file.name.endswith('.pdf') else None,
             'temp_image_path': file_path if not uploaded_file.name.endswith('.pdf') else None, 
@@ -356,7 +198,63 @@ def order_now(request):
             'location': request.POST.get('location'), 'print_mode': print_mode, 
             'side_type': request.POST.get('side_type', 'single'), 'custom_color_pages': request.POST.get('custom_color_pages', ''),
         }
-        # Mark as Direct Order with DIR_ prefix
+        CartItem.objects.create(user=request.user, **item)
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False}, status=401)
+
+@login_required(login_url='login')
+def cart_page(request):
+    db_items = CartItem.objects.filter(user=request.user).order_by('-created_at')
+    cart_list = []
+    for i in db_items:
+        cart_list.append({
+            'id': i.id,
+            'service_name': i.service_name, 'total_price': str(i.total_price), 'document_name': i.document_name,
+            'temp_path': i.temp_path, 'temp_image_path': i.temp_image_path, 'copies': i.copies, 'pages': i.pages,
+            'location': i.location, 'print_mode': i.print_mode, 'side_type': i.side_type, 'custom_color_pages': i.custom_color_pages,
+        })
+    request.session['cart'] = cart_list
+    request.session.modified = True
+    total_bill = sum(float(i.total_price) for i in db_items)
+    total_eff_pages = sum(int(i.pages) * int(i.copies) for i in db_items)
+    context = {'cart_items': cart_list, 'total_bill': round(total_bill, 2), 'total_pages': total_eff_pages, 'min_required': 5}
+    return render(request, 'core/cart.html', context)
+
+@login_required(login_url='login')
+def remove_from_cart(request, item_id):
+    item = get_object_or_404(CartItem, id=item_id, user=request.user)
+    name = item.service_name
+    item.delete()
+    messages.success(request, f"Removed '{name}' from your cart.")
+    return redirect('cart')
+
+# --- 🚀 3. ORDER & CHECKOUT FLOW ---
+
+@login_required(login_url='login')
+def order_all(request):
+    cart = CartItem.objects.filter(user=request.user)
+    if not cart.exists():
+        messages.error(request, "Your cart is empty.")
+        return redirect('cart')
+    if 'direct_item' in request.session: del request.session['direct_item']
+    request.session['pending_batch_id'] = f"TXN_{uuid.uuid4().hex[:10].upper()}"
+    request.session.modified = True
+    return redirect('cart_checkout_summary')
+
+@login_required(login_url='login')
+def order_now(request):
+    if request.method == "POST":
+        uploaded_file = request.FILES.get('document')
+        if not uploaded_file: return redirect('services')
+        file_path = default_storage.save(f'temp/direct_{uuid.uuid4()}_{uploaded_file.name}', ContentFile(uploaded_file.read()))
+        request.session['direct_item'] = {
+            'service_name': request.POST.get('service_name'), 'total_price': request.POST.get('total_price_hidden'),
+            'document_name': uploaded_file.name, 'temp_path': file_path if uploaded_file.name.endswith('.pdf') else None,
+            'temp_image_path': file_path if not uploaded_file.name.endswith('.pdf') else None, 
+            'copies': int(request.POST.get('copies', 1)), 'pages': int(request.POST.get('page_count', 1)), 
+            'location': request.POST.get('location'), 'print_mode': request.POST.get('print_mode', 'B&W'), 
+            'side_type': request.POST.get('side_type', 'single'), 'custom_color_pages': request.POST.get('custom_color_pages', ''),
+        }
         request.session['pending_batch_id'] = f"DIR_{uuid.uuid4().hex[:10].upper()}"
         request.session.modified = True
         return redirect('cart_checkout_summary')
@@ -368,18 +266,12 @@ def process_direct_order(request):
         uploaded_file = request.FILES.get('document')
         if not uploaded_file: return JsonResponse({'success': False})
         file_path = default_storage.save(f'temp/direct_{uuid.uuid4()}', ContentFile(uploaded_file.read()))
-        service_name = request.POST.get('service_name')
-        print_mode = request.POST.get('print_mode', 'B&W')
-        layout = request.POST.get('layout_type')
-        if service_name == "Custom Printing" and layout:
-            print_mode = f"{print_mode}({layout})"
-
         direct_item = {
-            'service_name': service_name, 'total_price': request.POST.get('total_price_hidden'),
+            'service_name': request.POST.get('service_name'), 'total_price': request.POST.get('total_price_hidden'),
             'document_name': uploaded_file.name, 'temp_path': file_path if uploaded_file.name.endswith('.pdf') else None,
             'temp_image_path': file_path if not uploaded_file.name.endswith('.pdf') else None, 
             'copies': int(request.POST.get('copies', 1)), 'pages': int(request.POST.get('page_count', 1)), 
-            'location': request.POST.get('location'), 'print_mode': print_mode, 
+            'location': request.POST.get('location'), 'print_mode': request.POST.get('print_mode', 'B&W'), 
             'side_type': request.POST.get('side_type', 'single'), 'custom_color_pages': request.POST.get('custom_color_pages', ''),
         }
         request.session['direct_item'] = direct_item
@@ -390,379 +282,117 @@ def process_direct_order(request):
 
 @login_required(login_url='login')
 def cart_checkout_summary(request):
-    """STRICT FILTER: Checks prefix to choose between Cart and Direct item."""
     batch_txn_id = request.session.get('pending_batch_id', '')
-    direct_item = request.session.get('direct_item')
     if batch_txn_id.startswith("DIR"):
-        items = [direct_item] if direct_item else []
+        items = [request.session.get('direct_item')] if request.session.get('direct_item') else []
     else:
         items = request.session.get('cart', [])
-        
     if not items or None in items: return redirect('services')
     grand_total = sum(float(i.get('total_price', 0)) for i in items)
     return render(request, 'core/checkout.html', {'cart_items': items, 'grand_total': round(grand_total, 2), 'items_count': len(items)})
 
 # --- 💳 4. CASHFREE GATEWAY INTEGRATION ---
 
-
-
 @login_required(login_url='login')
 def initiate_payment(request):
-    """
-    STRICT ISOLATION & PERSISTENCE:
-    1. Identifies source (Direct vs Cart) via batch_txn_id prefix.
-    2. For DIRECT orders: Automatically adds to DB Cart BEFORE payment to handle "Back" or "Close Tab" scenarios.
-    3. Records Pending Order in DB for history tracking.
-    4. Redirects to Cashfree gateway.
-    """
     batch_txn_id = request.session.get('pending_batch_id')
     direct_item = request.session.get('direct_item')
     cart_items = request.session.get('cart', [])
 
-    if not batch_txn_id: 
-        return redirect('cart')
+    if not batch_txn_id: return redirect('cart')
 
-    # --- 🛡️ THE ISOLATION & FAIL-SAFE TRANSFER FILTER ---
     if batch_txn_id.startswith("DIR"):
-        # Source: Service Page (Order Now)
         items_to_process = [direct_item] if direct_item else []
-        
-        # PRE-EMPTIVE BACKUP: Add to DB Cart immediately.
-        # This covers the "Back" button or "Close Window" scenario.
-        if direct_item:
-            # Delete any existing duplicates first
-            CartItem.objects.filter(
-                user=request.user,
-                document_name=direct_item.get('document_name')
-            ).delete()
-            
-            # Create fresh CartItem
-            CartItem.objects.create(
-                user=request.user,
-                document_name=direct_item.get('document_name'),
-                service_name=direct_item.get('service_name'),
-                total_price=direct_item.get('total_price'),
-                temp_path=direct_item.get('temp_path'),
-                temp_image_path=direct_item.get('temp_image_path'),
-                copies=direct_item.get('copies'),
-                pages=direct_item.get('pages', 1),
-                location=direct_item.get('location'),
-                print_mode=direct_item.get('print_mode'),
-                side_type=direct_item.get('side_type'),
-                custom_color_pages=direct_item.get('custom_color_pages')
-            )
     else:
-        # Source: Cart Page (Order All)
         items_to_process = cart_items
 
-    if not items_to_process or None in items_to_process:
-        messages.error(request, "No items found for this order session.")
-        return redirect('cart')
+    if not items_to_process: return redirect('cart')
 
-    # --- 🏦 DATABASE: Pre-record 'Pending' Orders ---
+    unique_order_id = f"{batch_txn_id}_{int(time.time())}"
     with transaction.atomic():
         for item in items_to_process:
             Order.objects.update_or_create(
-                transaction_id=batch_txn_id, 
-                document=item.get('document_name'),
-                defaults={
-                    'user': request.user, 
-                    'service_name': item.get('service_name'),
-                    'total_price': float(item.get('total_price', 0)), 
-                    'location': item.get('location'),
-                    'print_mode': item.get('print_mode'), 
-                    'side_type': item.get('side_type'),
-                    'copies': item.get('copies'), 
-                    'custom_color_pages': item.get('custom_color_pages', ''),
-                    'payment_status': "Pending", 
-                    'status': "Pending"
-                }
+                transaction_id=unique_order_id, document=item.get('document_name'),
+                defaults={'user': request.user, 'service_name': item.get('service_name'), 'total_price': float(item.get('total_price', 0)), 
+                          'location': item.get('location'), 'print_mode': item.get('print_mode'), 'side_type': item.get('side_type'),
+                          'copies': item.get('copies'), 'pages': item.get('pages', 1), 'custom_color_pages': item.get('custom_color_pages', ''), 
+                          'payment_status': "Pending", 'status': "Pending"}
             )
 
-    # --- 💳 CASHFREE API: Create Order ---
     grand_total = sum(float(i.get('total_price', 0)) for i in items_to_process)
     callback_url = f"{request.scheme}://{request.get_host()}/payment/callback/"
+    user_mobile = request.user.profile.mobile if hasattr(request.user, 'profile') else "9999999999"
+    if not user_mobile.startswith('91'): user_mobile = f"91{user_mobile}"
 
-    # Get user profile mobile or use default
-    try:
-        user_mobile = request.user.profile.mobile if hasattr(request.user, 'profile') else "9999999999"
-    except:
-        user_mobile = "9999999999"
-    
-    # Ensure phone has country code
-    if not user_mobile.startswith('91'):
-        user_mobile = f"91{user_mobile}"
-
-    # Cashfree Order Payload
     payload = {
-        "order_id": batch_txn_id,
-        "order_amount": float(grand_total),
-        "order_currency": "INR",
-        "customer_details": {
-            "customer_id": f"CUST_{request.user.id}",
-            "customer_name": request.user.first_name or request.user.username,
-            "customer_email": request.user.email or f"user{request.user.id}@fastcopy.local",
-            "customer_phone": user_mobile
-        },
-        "order_meta": {
-            "return_url": callback_url,
-            "notify_url": callback_url
-        }
+        "order_id": unique_order_id, "order_amount": float(grand_total), "order_currency": "INR",
+        "customer_details": {"customer_id": f"CUST_{request.user.id}", "customer_name": request.user.username, "customer_email": request.user.email or "test@fastcopy.in", "customer_phone": user_mobile},
+        "order_meta": {"return_url": callback_url, "notify_url": callback_url}
     }
-
-    # Cashfree Authentication Headers
-    headers = {
-        "Content-Type": "application/json",
-        "x-api-version": settings.CASHFREE_API_VERSION,
-        "x-client-id": settings.CASHFREE_APP_ID,
-        "x-client-secret": settings.CASHFREE_SECRET_KEY
-    }
+    headers = {"Content-Type": "application/json", "x-api-version": settings.CASHFREE_API_VERSION, "x-client-id": settings.CASHFREE_APP_ID, "x-client-secret": settings.CASHFREE_SECRET_KEY}
     
     try:
-        # Create Order API Call
-        response = requests.post(
-            f"{settings.CASHFREE_API_URL}/orders",
-            json=payload,
-            headers=headers
-        )
+        response = requests.post(f"{settings.CASHFREE_API_URL}/orders", json=payload, headers=headers)
         res_json = response.json()
-        
-        # Log the response for debugging
-        print(f"Cashfree API Response Status: {response.status_code}")
-        print(f"Cashfree API Response: {res_json}")
-        
-        # Check if order creation was successful
         if response.status_code == 200 and res_json.get('payment_session_id'):
-            # Store payment session ID in Django session
             request.session['cashfree_payment_session_id'] = res_json.get('payment_session_id')
-            request.session['cashfree_order_id'] = batch_txn_id
+            request.session['cashfree_order_id'] = unique_order_id
             request.session.modified = True
-            
-            # Redirect to Cashfree checkout template (will use JS SDK)
             return redirect('cashfree_checkout')
-        else:
-            # Order creation failed
-            error_msg = res_json.get('message', 'Unknown error')
-            print(f"Cashfree Error: {error_msg}")
-            messages.error(request, f"Payment initiation failed: {error_msg}")
-            Order.objects.filter(transaction_id=batch_txn_id).update(payment_status="Failed", status="Cancelled")
-            return redirect('cart')
-    except Exception as e:
-        print(f"Exception during Cashfree API call: {str(e)}")
-        messages.error(request, f"Payment gateway error: {str(e)}")
-        Order.objects.filter(transaction_id=batch_txn_id).update(payment_status="Failed", status="Cancelled")
         return redirect('cart')
-
-
-
-@login_required(login_url='login')
-def bypass_payment(request):
-    """
-    TEST MODE: Simulates a successful transaction with strict source isolation.
-    1. Detects source via 'pending_batch_id' prefix (DIR_ vs TXN_).
-    2. Finalizes the order records in the database with 'Pending' status.
-    3. Performs surgical cleanup:
-       - If Direct: Clears only the temporary session and the DB backup for that specific item.
-       - If Cart: Clears the entire session and DB cart.
-    """
-    txn_id = request.session.get('pending_batch_id')
-    direct_item = request.session.get('direct_item')
-    
-    # --- 1. Identify Target Items ---
-    if txn_id and txn_id.startswith("DIR"):
-        # Source: Service Page (Order Now)
-        items = [direct_item] if direct_item else []
-    else:
-        # Source: Cart Page (Order All)
-        items = request.session.get('cart', [])
-
-    # Validation check
-    if not items or None in items:
-        messages.error(request, "No items found to process for this test.")
-        return redirect('cart')
-
-    # --- 2. Database Finalization ---
-    # process_successful_order moves files and sets status to 'Pending'
-    last_o = process_successful_order(request.user, items, txn_id)
-    
-    # --- 3. Surgical Cleanup ---
-    if txn_id.startswith("DIR"):
-        # Success Cleanup for Direct Order:
-        # Remove the pre-emptive DB backup created in initiate_payment
-        if direct_item:
-            CartItem.objects.filter(
-                user=request.user, 
-                document_name=direct_item.get('document_name')
-            ).delete()
-        
-        # Remove the temporary service-page session item
-        if 'direct_item' in request.session: 
-            del request.session['direct_item']
-    else:
-        # Success Cleanup for Cart Order:
-        # Wipe the entire persistent cart and session
-        request.session['cart'] = []
-        CartItem.objects.filter(user=request.user).delete()
-        
-    # Commit session changes
-    request.session.modified = True
-    
-    messages.success(request, f"Test Payment Successful! Order {last_o.order_id} is now Pending.")
-    return render(request, 'core/payment_success.html', {'order': last_o})
-
-from django.contrib import messages
+    except: return redirect('cart')
 
 @csrf_exempt
 def payment_callback(request):
-    """
-    STRICT CALLBACK: Handles Cashfree payment responses with signature verification.
-    Processes success/failure and triggers appropriate cart/order handling.
-    """
-    # Cashfree sends data via GET parameters for return_url
-    # Try multiple parameter names that Cashfree might use
-    if request.method == 'GET':
-        order_id = (request.GET.get('order_id') or 
-                   request.GET.get('orderId') or
-                   request.GET.get('cf_order_id'))
-    else:
-        # For webhook/notify_url, Cashfree sends POST with JSON
-        try:
-            data = json.loads(request.body.decode('utf-8')) if request.body else {}
-            order_id = (data.get('order', {}).get('order_id') or 
-                       data.get('orderId') or
-                       request.POST.get('order_id'))
-        except:
-            order_id = request.POST.get('order_id')
-    
-    # Fallback: Try to get from session if not in parameters
+    """STRICT CALLBACK: Updates DB to Success or Failed/Cancelled."""
+    order_id = (request.GET.get('order_id') or 
+                request.GET.get('orderId') or 
+                request.session.get('cashfree_order_id'))
+
     if not order_id:
-        order_id = request.session.get('cashfree_order_id')
-        print(f"Using order_id from session: {order_id}")
-    
-    # Debug: Print all parameters to see what Cashfree is sending
-    print(f"GET parameters: {dict(request.GET)}")
-    print(f"POST parameters: {dict(request.POST)}")
-    print(f"Extracted order_id: {order_id}")
-    
-    if not order_id:
-        messages.error(request, "Invalid payment callback - missing order ID.")
+        messages.error(request, "Payment session not found. Returning to cart.")
         return redirect('cart')
     
-    # Verify payment status with Cashfree
-    headers = {
-        "Content-Type": "application/json",
-        "x-api-version": settings.CASHFREE_API_VERSION,
-        "x-client-id": settings.CASHFREE_APP_ID,
-        "x-client-secret": settings.CASHFREE_SECRET_KEY
-    }
-    
-    try:
-        # Fetch order details from Cashfree
-        response = requests.get(
-            f"{settings.CASHFREE_API_URL}/orders/{order_id}",
-            headers=headers
-        )
-        
-        if response.status_code != 200:
-            raise Exception("Failed to verify payment status")
-            
-        payment_data = response.json()
-        order_status = payment_data.get('order_status', 'FAILED')
-        
-    except Exception as e:
-        messages.error(request, f"Payment verification failed: {str(e)}")
-        order_status = 'FAILED'
-    
-    # Determine items involved based on order ID prefix
     txn_id = order_id
+    is_direct = txn_id.startswith("DIR")
     direct_item = request.session.get('direct_item')
-    is_direct = txn_id.startswith("DIR") if txn_id else False
     items_involved = [direct_item] if is_direct else request.session.get('cart', [])
 
-    # --- ✅ SUCCESS CASE ---
+    headers = {"Content-Type": "application/json", "x-api-version": settings.CASHFREE_API_VERSION, "x-client-id": settings.CASHFREE_APP_ID, "x-client-secret": settings.CASHFREE_SECRET_KEY}
+    
+    try:
+        response = requests.get(f"{settings.CASHFREE_API_URL}/orders/{order_id}", headers=headers)
+        order_status = response.json().get('order_status', 'FAILED')
+    except: order_status = 'FAILED'
+
     if order_status == 'PAID':
         process_successful_order(request.user, items_involved, txn_id)
-        
-        # Cleanup based on order type
-        if is_direct and direct_item:
-            # Remove pre-emptive DB backup
-            CartItem.objects.filter(
-                user=request.user, 
-                document_name=direct_item.get('document_name')
-            ).delete()
-            if 'direct_item' in request.session:
-                del request.session['direct_item']
-        else:
-            # Clear entire cart
-            request.session['cart'] = []
+        if is_direct: 
+            CartItem.objects.filter(user=request.user, document_name=direct_item.get('document_name')).delete()
+            if 'direct_item' in request.session: del request.session['direct_item']
+        else: 
             CartItem.objects.filter(user=request.user).delete()
-        
-        if 'pending_batch_id' in request.session:
-            del request.session['pending_batch_id']
-        
-        request.session.modified = True
-        messages.success(request, "Payment successful! Order placed successfully.")
+            request.session['cart'] = []
+        messages.success(request, "Payment successful! Order placed.")
         return redirect('history')
-        
     else:
-        # --- ❌ FAILURE CASE ---
+        # LOG FAILED PAYMENT TO DATABASE
         handle_failed_order(request.user, items_involved, txn_id)
         
-        # Set the error message
-        messages.error(
-            request, 
-            "PAYMENT FAILED: Your transaction could not be completed. Your items are safe in the cart."
-        )
-        
+        # Restore session context for retry
         if is_direct and direct_item:
-            # Ensure item is in DB Cart (already done in initiate_payment)
-            # Sync session cart from database
             db_cart = CartItem.objects.filter(user=request.user)
-            request.session['cart'] = [{
-                'service_name': i.service_name,
-                'total_price': str(i.total_price),
-                'document_name': i.document_name,
-                'temp_path': i.temp_path,
-                'temp_image_path': i.temp_image_path,
-                'copies': i.copies,
-                'pages': i.pages,
-                'location': i.location,
-                'print_mode': i.print_mode,
-                'side_type': i.side_type,
-                'custom_color_pages': i.custom_color_pages
-            } for i in db_cart]
-            
-            if 'direct_item' in request.session:
-                del request.session['direct_item']
+            request.session['cart'] = [{'id': i.id, 'service_name': i.service_name, 'total_price': str(i.total_price), 'document_name': i.document_name} for i in db_cart]
+            if 'direct_item' in request.session: del request.session['direct_item']
 
-        # Force save to ensure message is written
-        request.session.modified = True
-        request.session.save() 
-        
+        messages.warning(request, "Payment was canceled or failed. Items are safe in your cart.")
         return redirect('cart')
 
-    
 @login_required(login_url='login')
 def cashfree_checkout(request):
-    """
-    Renders the Cashfree checkout page with JS SDK.
-    Uses payment_session_id from session to initialize payment.
-    """
-    payment_session_id = request.session.get('cashfree_payment_session_id')
-    order_id = request.session.get('cashfree_order_id')
-    
-    if not payment_session_id:
-        messages.error(request, "Payment session expired. Please try again.")
-        return redirect('cart')
-    
-    context = {
-        'payment_session_id': payment_session_id,
-        'order_id': order_id,
-        'cashfree_env': 'sandbox'  # Change to 'production' for live
-    }
+    context = {'payment_session_id': request.session.get('cashfree_payment_session_id'), 'cashfree_env': 'sandbox'}
     return render(request, 'core/cashfree_checkout.html', context)
 
-    
 # --- 🌐 5. STATIC PAGES ---
 def home(request): return render(request, 'core/index.html', {'services': Service.objects.all()[:3]})
 def services_page(request): return render(request, 'core/services.html', {'services': Service.objects.all()})

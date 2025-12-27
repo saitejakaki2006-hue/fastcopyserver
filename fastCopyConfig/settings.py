@@ -59,25 +59,12 @@ TEMPLATES = [
 WSGI_APPLICATION = 'fastCopyConfig.wsgi.application'
 
 # 5. DATABASE (SQLite Configuration - For Testing)
-# Note: Switch back to MySQL for production
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
-# MySQL Configuration (Commented out)
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'fastCopyDatabase',
-#         'USER': 'root',
-#         'PASSWORD': 'PhaniUddagiri@2005',
-#         'HOST': 'localhost',
-#         'PORT': '3306',
-#     }
-# }
 
 # 6. PASSWORD VALIDATION
 AUTH_PASSWORD_VALIDATORS = [
@@ -88,8 +75,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # 7. INTERNATIONALIZATION (India Specific)
-# fastCopyConfig/settings.py
-
 LANGUAGE_CODE = 'en-us'
 
 # Set this to Asia/Kolkata for correct India Time
@@ -104,7 +89,6 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # 9. MEDIA FILES (For uploaded PDF/Image files)
-# When a student uploads a document, it will be saved in the /orders/ folder
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
@@ -112,6 +96,4 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = 'home'
-
-# Optional: If you want to redirect them to home after logging out too
 LOGOUT_REDIRECT_URL = 'home'

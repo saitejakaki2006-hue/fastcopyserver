@@ -1,76 +1,120 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %} 
+{% load static %}
+
 {% block content %}
-<div class="container py-5">
+<div class="container py-4 py-md-5 min-vh-100 d-flex flex-column justify-content-center">
     <div class="row justify-content-center">
-        <div class="col-lg-6">
-            <div class="card border-0 bg-dark text-white rounded-4 shadow-lg overflow-hidden border-top border-primary border-5"
-                data-aos="zoom-in">
-                <div class="card-body p-5 text-center">
-                    <h2 class="text-uppercase fw-black italic mb-4">Confirm <span class="text-primary">Payment</span>
-                    </h2>
-
-                    <div
-                        class="my-4 py-3 bg-secondary bg-opacity-10 rounded-3 border border-secondary border-opacity-25">
-                        <span class="text-uppercase small opacity-75 d-block mb-1">Total Amount Payable ({{ items_count
-                            }} Items)</span>
-                        <h1 class="fw-black text-primary mb-0">₹{{ grand_total }}</h1>
+        <div class="col-12 col-md-10 col-lg-7 col-xl-6">
+            
+            <div class="d-flex justify-content-between mb-5 px-4 position-relative align-items-center" style="z-index: 1;">
+                <div class="text-center">
+                    <div class="step-icon bg-primary text-white shadow-sm mb-2 mx-auto border-0">
+                        <i class="fas fa-check" style="font-size: 10px;"></i>
                     </div>
-
-                    <div class="text-start mb-4">
-                        <h6 class="text-uppercase small fw-bold text-primary mb-3 tracking-widest">Order Summary:</h6>
-                        <div class="d-grid gap-2">
-                            {% for item in cart_items %}
-                            <div
-                                class="d-flex justify-content-between align-items-center p-3 rounded bg-secondary bg-opacity-10 border border-secondary border-opacity-10">
-                                <div class="overflow-hidden">
-                                    <p class="small mb-0 fw-black text-uppercase italic text-truncate"
-                                        style="max-width: 220px;">
-                                        {{ item.service_name }}
-                                    </p>
-                                    <p class="mb-0 opacity-50 text-truncate" style="font-size: 0.65rem;">
-                                        {{ item.document_name|default:"Document File" }}
-                                    </p>
-                                </div>
-                                <div class="text-end">
-                                    <span class="fw-black text-white small">₹{{ item.total_price }}</span>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                    <hr class="border-secondary opacity-25 my-4">
-
-                    <div class="d-grid gap-3">
-                        <a href="{% url 'initiate_payment' %}"
-                            class="btn btn-primary btn-lg py-3 rounded-pill fw-black text-uppercase tracking-widest shadow-lg hover-scale transition-all">
-                            Pay ₹{{ grand_total }} via Cashfree <i class="fas fa-credit-card ms-2"></i>
-                        </a>
-
-                        <a href="{% url 'bypass_payment' %}"
-                            class="btn btn-outline-warning py-2 rounded-pill fw-bold text-uppercase tracking-widest transition-all"
-                            style="font-size: 0.75rem;">
-                            <i class="fas fa-vial me-2"></i> Simulate Success (Test Mode)
-                        </a>
-                    </div>
-
-                    <div class="mt-4 pt-2">
-                        <p class="text-muted small mb-0 opacity-75">
-                            <i class="fas fa-shield-alt text-primary me-1"></i> Secure Encrypted Transaction
-                        </p>
-                        <p class="text-muted italic mt-2" style="font-size: 0.6rem; line-height: 1.4;">
-                            Note: Your order will be placed and the cart will be cleared only after payment
-                            confirmation. <br>
-                            <span class="text-warning">Use "Test Mode" only for development modifications.</span>
-                        </p>
-                    </div>
+                    <span class="text-[10px] font-black uppercase text-primary tracking-widest">Cart</span>
+                </div>
+                
+                <div class="step-line bg-primary"></div>
+                
+                <div class="text-center">
+                    <div class="step-icon bg-primary text-white shadow-lg mb-2 mx-auto ring-4 ring-primary ring-opacity-50 border-0">2</div>
+                    <span class="text-[10px] font-black uppercase text-primary tracking-widest">Review</span>
+                </div>
+                
+                <div class="step-line bg-slate-700"></div>
+                
+                <div class="text-center">
+                    <div class="step-icon bg-slate-800 text-white text-slate-500 mb-2 mx-auto border border-slate-700">3</div>
+                    <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Payment</span>
                 </div>
             </div>
 
+            <div class="card border-0 bg-dark text-white rounded-[2rem] shadow-2xl overflow-hidden border-top border-primary border-5" data-aos="zoom-in">
+                <div class="card-body p-4 p-md-5">
+                    
+                    <header class="text-center mb-5">
+                        <h2 class="text-uppercase fw-black italic mb-1 tracking-tighter">Order <span class="text-primary">Summary</span></h2>
+                        <p class="text-white-50 text-[10px] font-bold uppercase tracking-widest">Verify your details before proceeding</p>
+                    </header>
+                    
+                    <div class="amount-banner mb-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="text-uppercase text-[10px] fw-black text-primary tracking-widest d-block">Grand Total</span>
+                                <small class="text-white-50 uppercase text-[9px]">{{ items_count }} Items • Inc. Delivery</small>
+                            </div>
+                            <div class="text-end">
+                                <h1 class="fw-black mb-0 display-6 italic tracking-tighter text-white">₹{{ grand_total }}</h1>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-start mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <i class="fas fa-list-ul text-primary small"></i>
+                            <h6 class="text-uppercase small fw-black m-0 tracking-widest text-white">Itemized Recap</h6>
+                        </div>
+                        
+                        <div class="checkout-scroll-area pe-2" style="max-height: 250px; overflow-y: auto;">
+                            <div class="d-grid gap-2">
+                                {% for item in cart_items %}
+                                <div class="item-card p-3 rounded-4 bg-white bg-opacity-5 border border-white border-opacity-5 transition-all">
+                                    <div class="row align-items-center g-2">
+                                        <div class="col-8 overflow-hidden pe-2">
+                                            <p class="small mb-1 fw-black text-uppercase italic text-truncate text-white">
+                                                {{ item.service_name }}
+                                            </p>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <i class="fas fa-file-pdf text-primary" style="font-size: 0.65rem;"></i>
+                                                <p class="mb-0 text-white-50 text-truncate font-bold" style="font-size: 0.65rem;">
+                                                    {{ item.document_name|default:"Document File" }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-4 text-end">
+                                            <span class="fw-black text-primary">₹{{ item.total_price }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-5 px-3 py-2 border-bottom border-white border-opacity-10">
+                        <span class="text-white-50 text-[10px] font-black uppercase tracking-widest">Campus Delivery</span>
+                        <span class="text-success fw-black uppercase tracking-widest" style="font-size: 11px;">
+                            <i class="fas fa-truck-loading me-1"></i> FREE
+                        </span>
+                    </div>
+
+                    <div class="text-center mb-4">
+                        <a href="{% url 'initiate_payment' %}" id="pay-btn"
+                           onclick="this.classList.add('disabled'); this.innerHTML='<i class=\'fas fa-spinner fa-spin me-2\'></i> Processing...';"
+                           class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-3 px-5 py-3 rounded-pill no-underline transition-all shadow-xl shadow-primary-500/20 hover-scale">
+                            <span class="font-black text-[11px] text-uppercase tracking-widest">Proceed to Pay ₹{{ grand_total }}</span>
+                            <i class="fas fa-credit-card small"></i>
+                        </a>
+                    </div>
+
+                    <footer class="text-center mt-5">
+                        <div class="d-flex flex-column align-items-center">
+                            <p class="text-primary text-[9px] fw-black text-uppercase mb-2 tracking-widest d-flex align-items-center justify-content-center gap-2">
+                                <i class="fas fa-shield-alt"></i> Secure Encrypted Transaction
+                            </p>
+                            <p class="text-white-50 italic mb-0 px-4" style="font-size: 0.65rem; line-height: 1.6;">
+                                Your order will be placed and the cart cleared 
+                                <span class="text-info fw-bold">only after</span> payment confirmation from the gateway.
+                            </p>
+                        </div>
+                    </footer>
+                </div>
+            </div>
+            
             <div class="text-center mt-4">
-                <a href="{% url 'cart' %}"
-                    class="text-white text-decoration-none opacity-50 small hover-opacity-100 transition-all">
-                    <i class="fas fa-chevron-left me-1"></i> Back to Cart
+                <a href="{% url 'cart' %}" class="btn-back-cart no-underline transition-all d-inline-flex align-items-center gap-2">
+                    <i class="fas fa-chevron-left"></i> 
+                    <span class="font-black uppercase tracking-widest text-primary">Back to Cart</span>
                 </a>
             </div>
         </div>
@@ -78,38 +122,22 @@
 </div>
 
 <style>
-    .fw-black {
-        font-weight: 900;
+    .fw-black { font-weight: 900; }
+    .italic { font-style: italic; }
+    .tracking-widest { letter-spacing: 0.15em; }
+    .bg-dark { background-color: #0f172a !important; }
+    .amount-banner {
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(15, 23, 42, 0) 100%);
+        padding: 1.5rem; border-radius: 1.5rem; border-left: 5px solid #2563eb;
     }
-
-    .italic {
-        font-style: italic;
-    }
-
-    .tracking-widest {
-        letter-spacing: 0.15em;
-    }
-
-    .hover-scale {
-        transition: transform 0.2s;
-    }
-
-    .hover-scale:hover {
-        transform: scale(1.02);
-        box-shadow: 0 10px 20px rgba(13, 110, 253, 0.3) !important;
-    }
-
-    .btn-outline-warning:hover {
-        background-color: #ffc107;
-        color: #000 !important;
-    }
-
-    .hover-opacity-100:hover {
-        opacity: 1 !important;
-    }
-
-    .transition-all {
-        transition: all 0.3s ease;
-    }
+    .step-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 12px; }
+    .step-line { height: 3px; flex-grow: 1; align-self: center; margin: 0 10px; transform: translateY(-8px); border-radius: 10px; }
+    .item-card { background-color: rgba(255, 255, 255, 0.04) !important; }
+    .item-card:hover { background-color: rgba(37, 99, 235, 0.1) !important; transform: translateX(5px); }
+    .btn-back-cart { color: #3b82f6; font-size: 10px; opacity: 0.8; }
+    .checkout-scroll-area::-webkit-scrollbar { width: 4px; }
+    .checkout-scroll-area::-webkit-scrollbar-thumb { background: #2563eb; border-radius: 10px; }
+    .hover-scale:hover { transform: scale(1.03); }
+    .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); }
 </style>
 {% endblock %}

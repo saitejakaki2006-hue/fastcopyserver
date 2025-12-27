@@ -24,9 +24,6 @@ class UserProfile(models.Model):
     mobile = models.CharField(max_length=15)
     address = models.TextField(null=True, blank=True)
 
-    # Note: Name and Email are handled by the built-in Django User model
-    # linked via the OneToOneField. We use properties for easy access.
-
     @property
     def name(self):
         """Returns the first_name from the Auth User table."""
@@ -39,13 +36,10 @@ class UserProfile(models.Model):
 
     def save(self, *args, **kwargs):
         is_new = self._state.adding
-        # Step 1: Initial save to get the primary key (id)
         super().save(*args, **kwargs)
         
-        # Step 2: Generate FC_USER_0000000 format after ID is available
         if is_new and not self.fc_user_id:
             self.fc_user_id = f"FC_USER_{self.id:07d}"
-            # Use update to bypass re-triggering save() and recursion
             UserProfile.objects.filter(pk=self.pk).update(fc_user_id=self.fc_user_id)
 
     def __str__(self): 

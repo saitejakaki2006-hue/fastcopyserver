@@ -42,5 +42,4 @@ urlpatterns = [
     path('payment/cashfree-checkout/', views.cashfree_checkout, name='cashfree_checkout'),
     path('payment/callback/', views.payment_callback, name='payment_callback'),    
     # bypass_payment: Test/Bypass logic that handles DIR/TXN isolation automatically
-    path('payment/bypass-test/', views.bypass_payment, name='bypass_payment'),
 ]

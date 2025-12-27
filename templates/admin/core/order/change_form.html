@@ -68,11 +68,16 @@
                 <div><strong style="color: var(--body-fg);">Order ID:</strong> <span
                         style="color:#2563eb; font-weight:bold;">{{ original.order_id|default:original.id }}</span>
                 </div>
-                <div><strong style="color: var(--body-fg);">Name:</strong> {{ original.user.first_name|default:"N/A" }}
+                <div><strong style="color: var(--body-fg);">Name:</strong> {{ original.user.first_name|default:original.user.username }}
                 </div>
-                <div><strong style="color: var(--body-fg);">Mobile Number:</strong> {{
-                    original.user.username|default:"N/A" }}</div>
-                <div><strong style="color: var(--body-fg);">Location:</strong> {{ original.location }}</div>
+                
+                <div><strong style="color: var(--body-fg);">Mobile Number:</strong> 
+                    <span style="font-weight: 600; color: #2563eb;">
+                        {{ original.user.profile.mobile|default:original.user.username }}
+                    </span>
+                </div>
+
+                <div><strong style="color: var(--body-fg);">Location:</strong> {{ original.location|default:"Not Specified" }}</div>
 
                 <div style="margin-top: 5px; color: var(--body-quiet-color); font-size: 13px;">
                     <div><strong>Print Cost:</strong> ₹{{ original.total_price }} (Calculated)</div>

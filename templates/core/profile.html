@@ -12,20 +12,20 @@
         .table thead { display: none; }
         .table tbody tr {
             display: block;
-            background: rgba(248, 250, 252, 0.8);
+            background: white;
             border: 1px solid #e2e8f0;
-            border-radius: 1.2rem;
+            border-radius: 1.5rem;
             margin-bottom: 1rem;
-            padding: 15px;
+            padding: 20px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
         .table tbody td {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 0 !important;
+            padding: 10px 0 !important;
             border: none !important;
-            font-size: 12px !important;
+            font-size: 11px !important;
         }
         .table tbody td::before {
             content: attr(data-label);
@@ -39,18 +39,18 @@
     @media (min-width: 992px) {
         .sticky-sidebar { position: sticky; top: 120px; }
     }
-    .fa-spin-slow { animation: spin 3s linear infinite; }
+    .fa-spin-slow { animation: spin 4s linear infinite; }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 </style>
 
-<section class="profile-section relative overflow-hidden py-10 md:py-24 min-h-screen">
+<section class="profile-section relative overflow-hidden py-10 md:py-24 min-h-screen bg-slate-50/50">
     <div class="absolute top-20 right-0 w-64 md:w-96 h-64 md:h-96 bg-blue-600/10 floating-blob rounded-full"></div>
     <div class="absolute bottom-10 left-0 w-64 md:w-80 h-64 md:h-80 bg-purple-600/5 floating-blob rounded-full" style="animation-delay: -3s;"></div>
 
     <div class="container mx-auto px-4 relative z-10">
         <div class="row g-5">
             <div class="col-lg-4" data-aos="fade-right">
-                <div class="sticky-sidebar bg-white/80 backdrop-blur-xl border border-slate-200 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl text-center">
+                <div class="sticky-sidebar bg-white/90 backdrop-blur-xl border border-slate-200 p-6 md:p-8 rounded-[2.5rem] shadow-2xl text-center">
                     <div class="relative inline-block mb-4">
                         <div class="w-24 h-24 md:w-32 md:h-32 bg-blue-600 rounded-full flex items-center justify-center text-white text-3xl md:text-4xl font-black italic shadow-2xl">
                             {{ request.user.first_name|slice:":1"|upper }}
@@ -69,7 +69,7 @@
                     <div class="space-y-2 text-start">
                         <div class="p-3 bg-slate-50/50 rounded-2xl border border-slate-100">
                             <span class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Email Identity</span>
-                            <span class="text-xs font-bold text-slate-700">{{ request.user.email|default:"Not Linked" }}</span>
+                            <span class="text-xs font-bold text-slate-700 truncate block">{{ request.user.email|default:"Not Linked" }}</span>
                         </div>
                         <div class="p-3 bg-slate-50/50 rounded-2xl border border-slate-100">
                             <span class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Mobile Access</span>
@@ -81,7 +81,7 @@
                         </div>
                     </div>
 
-                    <a href="{% url 'logout' %}" class="btn-3d w-full mt-6 bg-red-50 text-red-600 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest no-underline border border-red-100">
+                    <a href="{% url 'logout' %}" class="w-full mt-6 inline-block bg-red-50 text-red-600 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest no-underline border border-red-100 hover:bg-red-600 hover:text-white transition-all">
                         Secure Logout
                     </a>
                 </div>
@@ -89,7 +89,7 @@
 
             <div class="col-lg-8">
                 {% if tracking %}
-                <div class="bg-slate-900 rounded-[2rem] p-6 md:p-8 text-white shadow-2xl mb-8 relative overflow-hidden" data-aos="fade-up">
+                <div class="bg-slate-900 rounded-[2.5rem] p-6 md:p-8 text-white shadow-2xl mb-8 relative overflow-hidden" data-aos="fade-up">
                     <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 blur-3xl"></div>
                     <div class="relative z-10">
                         <div class="flex justify-between items-center mb-6">
@@ -109,47 +109,60 @@
                 {% endif %}
 
                 <div class="bg-white border border-slate-200 rounded-[2.5rem] p-6 md:p-8 shadow-sm" data-aos="fade-up" data-aos-delay="100">
-                    <div class="flex justify-between items-center mb-6">
+                    <div class="flex justify-between items-center mb-8">
                         <h3 class="text-xl font-black italic text-slate-900">Recent Logs</h3>
-                        
                         {% if recent_bookings %}
-                        <a href="{% url 'history' %}" class="text-[9px] font-black text-blue-600 uppercase no-underline border-b-2 border-blue-600 pb-1 hover:text-blue-800 hover:border-blue-800 transition-all">See Full History →</a>
+                        <a href="{% url 'history' %}" class="text-[9px] font-black text-blue-600 uppercase no-underline border-b-2 border-blue-600 pb-1 hover:text-blue-800 hover:border-blue-800 transition-all">Full History →</a>
                         {% else %}
-                        <span class="text-[9px] font-black text-slate-300 uppercase tracking-widest opacity-50 cursor-not-allowed">History Empty</span>
+                        <span class="text-[9px] font-black text-slate-300 uppercase tracking-widest opacity-50">Log Empty</span>
                         {% endif %}
                     </div>
                     
                     <div class="table-responsive">
                         {% if recent_bookings %}
                         <table class="table table-borderless align-middle m-0">
-                            <thead class="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50">
+                            <thead class="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
                                 <tr>
-                                    <th>Order ID</th>
-                                    <th>Service & Config</th>
-                                    <th>Date</th>
-                                    <th>Payment</th>
-                                    <th>Status</th>
+                                    <th class="pb-4">Order ID</th>
+                                    <th class="pb-4">Service & Location</th>
+                                    <th class="pb-4">Configuration</th>
+                                    <th class="pb-4">Date</th>
+                                    <th class="pb-4 text-center">Payment</th>
+                                    <th class="pb-4 text-end">Status</th>
                                 </tr>
                             </thead>
                             <tbody class="text-xs font-bold text-slate-600">
                                 {% for order in recent_bookings %}
-                                <tr class="border-b border-slate-50 last:border-0">
-                                    <td class="py-3 md:py-4" data-label="Order ID">
-                                        <span class="text-blue-600 font-black">#{{ order.order_id }}</span>
-                                    </td>
-                                    <td class="py-3 md:py-4" data-label="Config">
+                                <tr class="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
+                                    <td class="py-4 font-black text-blue-600" data-label="Order ID">#{{ order.order_id }}</td>
+                                    
+                                    <td class="py-4" data-label="Service">
                                         <div class="flex flex-col">
-                                            <span class="text-slate-900">{{ order.service_name }}</span>
-                                            <div class="flex flex-wrap gap-1 mt-1">
-                                                <span class="text-[8px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 uppercase">{{ order.print_mode }}</span>
-                                                <span class="text-[8px] bg-blue-50 px-1.5 py-0.5 rounded text-blue-600 uppercase">{{ order.copies }} Qty</span>
-                                            </div>
+                                            <span class="text-slate-900 uppercase tracking-tight">{{ order.service_name }}</span>
+                                            <span class="text-[9px] text-slate-400 uppercase tracking-tighter">{{ order.location|default:"Main Campus" }}</span>
                                         </div>
                                     </td>
-                                    <td class="py-3 md:py-4 text-slate-400" data-label="Date">{{ order.created_at|date:"d M" }}</td>
+
+                                    <td class="py-4" data-label="Config">
+                                        <div class="flex flex-wrap gap-1">
+                                            {% if "custom" in order.print_mode.lower %}
+                                                <span class="px-2 py-0.5 bg-orange-50 text-orange-600 border border-orange-100 rounded text-[7px] font-black uppercase">Custom</span>
+                                            {% elif order.print_mode == 'bw' or order.print_mode == 'black & white' %}
+                                                <span class="px-2 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded text-[7px] font-black uppercase">B&W</span>
+                                            {% else %}
+                                                <span class="px-2 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 rounded text-[7px] font-black uppercase">Color</span>
+                                            {% endif %}
+                                            <span class="px-2 py-0.5 bg-slate-50 text-slate-500 border border-slate-100 rounded text-[7px] font-black uppercase">{{ order.copies }} Qty</span>
+                                        </div>
+                                    </td>
+
+                                    <td class="py-4 text-slate-400" data-label="Date">
+                                        {{ order.created_at|date:"d M" }}<br>
+                                        <span class="text-[8px] opacity-60">{{ order.created_at|date:"h:i A" }}</span>
+                                    </td>
                                     
-                                    <td class="py-3 md:py-4" data-label="Payment">
-                                        <div class="flex flex-col items-start md:items-center">
+                                    <td class="py-4 text-center" data-label="Payment">
+                                        <div class="flex flex-col items-center">
                                             <span class="font-black text-slate-900">₹{{ order.total_price }}</span>
                                             <span class="text-[7px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded mt-1
                                                 {% if order.payment_status == 'Success' %} text-green-600 bg-green-50
@@ -160,7 +173,7 @@
                                         </div>
                                     </td>
 
-                                    <td class="py-3 md:py-4" data-label="Order Status">
+                                    <td class="py-4 text-end" data-label="Status">
                                         <span class="px-3 py-1 rounded-lg text-[8px] uppercase font-black 
                                             {% if order.status == 'Delivered' %} bg-green-50 text-green-600 
                                             {% elif order.status == 'Rejected' or order.status == 'Cancelled' %} bg-red-50 text-red-600
@@ -175,12 +188,12 @@
                         </table>
                         {% else %}
                         <div class="text-center py-12">
-                            <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-200 text-3xl">
+                            <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-200 text-2xl">
                                 <i class="fa-solid fa-folder-open"></i>
                             </div>
-                            <h4 class="text-slate-900 font-black italic text-lg mb-1">No Orders Found</h4>
-                            <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-6">Your transaction log is empty</p>
-                            <a href="{% url 'services' %}" class="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-blue-500/20 hover:scale-105 transition-transform no-underline">
+                            <h4 class="text-slate-900 font-black italic text-md mb-1">No Orders Found</h4>
+                            <p class="text-slate-400 text-[9px] font-bold uppercase tracking-widest mb-6">Your transaction log is empty</p>
+                            <a href="{% url 'services' %}" class="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 text-white rounded-2xl text-[9px] font-black uppercase tracking-widest shadow-xl shadow-blue-500/20 hover:scale-105 transition-transform no-underline">
                                 <i class="fa-solid fa-plus"></i> Order Now
                             </a>
                         </div>
