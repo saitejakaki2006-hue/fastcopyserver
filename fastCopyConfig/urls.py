@@ -2,17 +2,13 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from core.admin import admin_site  # Import your custom admin instance
+from core.admin import admin_site # Your custom admin site
 
 urlpatterns = [
-    # 🛠️ Custom Admin Site
     path('admin/', admin_site.urls),
-    
-    # 🏠 Core App URLs
     path('', include('core.urls')),
 ]
 
-# 📂 Serve Media Files (PDFs/Images) during development
+# This is what allows the 'Open File' button to work on your local machine
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

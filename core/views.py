@@ -20,16 +20,15 @@ from .models import Service, Order, UserProfile, CartItem
 def handle_failed_order(user, items_list, txn_id, reason="Payment Failed"):
     """
     Atomically handles payment failure.
-    1. Creates 'Cancelled' order records for history.
-    2. STRICT ISOLATION: If it was a Direct Order (DIR prefix), 
-       restores ONLY those items to the database CartItem table.
+    Ensures 'Cancelled' orders appear in User History and Admin Dashboard.
     """
     with transaction.atomic():
         last_order = None
         for item in items_list:
-            if not item: 
-                continue
-                
+            if not item: continue
+            
+            # Explicitly set status to 'Cancelled' and payment to 'Failed'
+            # This ensures the Admin Dashboard can filter for loss-analysis
             last_order = Order.objects.create(
                 user=user,
                 service_name=item.get('service_name'),
@@ -44,15 +43,15 @@ def handle_failed_order(user, items_list, txn_id, reason="Payment Failed"):
                 status="Cancelled"
             )
             
-            # [STRICT REQUIREMENT] Restore to DB Cart only if it was a Direct Service-Page Order.
+            # STRICT ISOLATION: Restore to DB Cart for Direct Orders
             if txn_id.startswith("DIR"):
-                CartItem.objects.get_or_create(
+                CartItem.objects.update_or_create(
                     user=user,
-                    document_name=item.get('document_name'),
+                    temp_path=item.get('temp_path'), # Using temp_path for uniqueness
                     defaults={
+                        'document_name': item.get('document_name'),
                         'service_name': item.get('service_name'),
                         'total_price': item.get('total_price'),
-                        'temp_path': item.get('temp_path'),
                         'temp_image_path': item.get('temp_image_path'),
                         'copies': item.get('copies'),
                         'pages': item.get('pages', 1),
@@ -423,20 +422,18 @@ def initiate_payment(request):
         return redirect('cart')
 
     # --- 🛡️ THE ISOLATION & FAIL-SAFE TRANSFER FILTER ---
+    # --- Change this block in initiate_payment ---
     if batch_txn_id.startswith("DIR"):
-        # Source: Service Page (Order Now)
         items_to_process = [direct_item] if direct_item else []
-        
-        # PRE-EMPTIVE BACKUP: Add to DB Cart immediately.
-        # This covers the "Back" button or "Close Window" scenario.
         if direct_item:
-            CartItem.objects.get_or_create(
+            # Use temp_path as the lookup key because it is unique (contains UUID)
+            CartItem.objects.update_or_create(
                 user=request.user,
-                document_name=direct_item.get('document_name'),
+                temp_path=direct_item.get('temp_path'), # This is unique!
                 defaults={
+                    'document_name': direct_item.get('document_name'),
                     'service_name': direct_item.get('service_name'),
                     'total_price': direct_item.get('total_price'),
-                    'temp_path': direct_item.get('temp_path'),
                     'temp_image_path': direct_item.get('temp_image_path'),
                     'copies': direct_item.get('copies'),
                     'pages': direct_item.get('pages', 1),
@@ -567,44 +564,53 @@ from django.contrib import messages
 @csrf_exempt
 def payment_callback(request):
     """
-    STRICT CALLBACK: Handles failure, triggers flash message, and syncs cart.
+    STRICT CALLBACK: Handles failure, triggers flash message, and syncs history.
     """
     txn_id = request.POST.get('merchantTransactionId', '')
     code = request.POST.get('code', '')
     
+    # Identify Source
     direct_item = request.session.get('direct_item')
     is_direct = txn_id.startswith("DIR") if txn_id else False
     items_involved = [direct_item] if is_direct else request.session.get('cart', [])
 
     if code == 'PAYMENT_SUCCESS':
         process_successful_order(request.user, items_involved, txn_id)
-        # ... (Success cleanup logic) ...
-        messages.success(request, "Order placed successfully!")
+        
+        # Success cleanup for session
+        if is_direct:
+            if 'direct_item' in request.session: del request.session['direct_item']
+        else:
+            request.session['cart'] = []
+            CartItem.objects.filter(user=request.user).delete()
+            
+        messages.success(request, "Order placed successfully! Check your History for status.")
+        request.session.modified = True
+        request.session.save()
         return redirect('history')
+    
     else:
-        # --- ❌ FAILURE CASE ---
+        # --- ❌ FAILURE CASE (Fix for Message Display) ---
         handle_failed_order(request.user, items_involved, txn_id)
         
-        # 1. SET THE MESSAGE: This is what you were missing
+        # Flash message for the user
         messages.error(
             request, 
             "PAYMENT FAILED: Your transaction could not be completed. Your items are safe in the cart."
         )
         
         if is_direct and direct_item:
-            # Move to DB Cart
-            CartItem.objects.get_or_create(
-                user=request.user,
-                document_name=direct_item.get('document_name'),
-                defaults=direct_item
-            )
-            # Sync Session so UI updates
-            db_cart = CartItem.objects.filter(user=request.user)
-            request.session['cart'] = [{k: str(v) if k == 'total_price' else v for k, v in i.__dict__.items() if not k.startswith('_')} for i in db_cart]
-            if 'direct_item' in request.session:
-                del request.session['direct_item']
+            # Sync session with DB Cart so the user sees the item in /cart/
+            db_cart = CartItem.objects.filter(user=request.user).order_by('-created_at')
+            request.session['cart'] = [
+                {k: str(v) if k == 'total_price' else v 
+                 for k, v in i.__dict__.items() if not k.startswith('_')} 
+                for i in db_cart
+            ]
+            if 'direct_item' in request.session: del request.session['direct_item']
 
-        # 2. FORCE SAVE: Ensures the message is written to the DB/Cookie before redirect
+        # CRITICAL: Force save session before redirecting. 
+        # Without this, messages often fail to persist across the POST-to-GET redirect.
         request.session.modified = True
         request.session.save() 
         
