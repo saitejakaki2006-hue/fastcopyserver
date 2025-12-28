@@ -39,7 +39,14 @@ urlpatterns = [
 
     # --- 💳 Payments ---
     path('payment/initiate/', views.initiate_payment, name='initiate_payment'),
+    path('payment/cashfree-checkout/', views.cashfree_checkout, name='cashfree_checkout'),
     path('payment/callback/', views.payment_callback, name='payment_callback'),    
     # bypass_payment: Test/Bypass logic that handles DIR/TXN isolation automatically
-    path('payment/bypass-test/', views.bypass_payment, name='bypass_payment'),
+    
+    # --- 🏪 Dealer Dashboard ---
+    path('dealer/login/', views.dealer_login_view, name='dealer_login'),
+    path('dealer/dashboard/', views.dealer_dashboard_view, name='dealer_dashboard'),
+    path('dealer/logout/', views.dealer_logout_view, name='dealer_logout'),
+    path('dealer/update-order/<int:order_id>/', views.update_order_status, name='update_order_status'),
+    path('dealer/download/<int:order_id>/', views.dealer_download_file, name='dealer_download_file'),
 ]
