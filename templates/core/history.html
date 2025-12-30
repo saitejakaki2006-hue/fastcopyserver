@@ -13,10 +13,12 @@
             </div>
 
             {% if orders %}
-            <div class="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-2xl overflow-hidden" data-aos="zoom-in">
+            <div class="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-2xl overflow-hidden"
+                data-aos="zoom-in">
                 <div class="table-responsive">
                     <table class="table table-borderless align-middle m-0">
-                        <thead class="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                        <thead
+                            class="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
                             <tr>
                                 <th class="pb-4">Order ID</th>
                                 <th class="pb-4">Service & Location</th>
@@ -33,7 +35,8 @@
 
                                 <td>
                                     <div class="flex flex-col">
-                                        <span class="text-slate-900 uppercase tracking-tight">{{ order.service_name }}</span>
+                                        <span class="text-slate-900 uppercase tracking-tight">{{ order.service_name
+                                            }}</span>
                                         <span class="text-[9px] text-slate-400 uppercase tracking-tighter">
                                             {{ order.location|default:"General Campus" }}
                                         </span>
@@ -43,27 +46,34 @@
                                 <td>
                                     <div class="flex flex-wrap gap-1">
                                         {% if "custom" in order.print_mode|lower %}
-                                            <span class="px-2 py-1 bg-orange-50 text-orange-600 border border-orange-100 rounded text-[8px] font-black uppercase">
-                                                Custom Split
-                                            </span>
-                                        {% elif order.print_mode|lower == 'bw' or order.print_mode|lower == 'black & white' %}
-                                            <span class="px-2 py-1 bg-slate-100 text-slate-600 border border-slate-200 rounded text-[8px] font-black uppercase">
-                                                B&W
-                                            </span>
+                                        <span
+                                            class="px-2 py-1 bg-orange-50 text-orange-600 border border-orange-100 rounded text-[8px] font-black uppercase">
+                                            Custom Split
+                                        </span>
+                                        {% elif order.print_mode|lower == 'bw' or order.print_mode|lower == 'black &
+                                        white' %}
+                                        <span
+                                            class="px-2 py-1 bg-slate-100 text-slate-600 border border-slate-200 rounded text-[8px] font-black uppercase">
+                                            B&W
+                                        </span>
                                         {% else %}
-                                            <span class="px-2 py-1 bg-blue-50 text-blue-600 border border-blue-100 rounded text-[8px] font-black uppercase">
-                                                Color
-                                            </span>
+                                        <span
+                                            class="px-2 py-1 bg-blue-50 text-blue-600 border border-blue-100 rounded text-[8px] font-black uppercase">
+                                            Color
+                                        </span>
                                         {% endif %}
 
-                                        <span class="px-2 py-1 bg-slate-50 text-slate-500 border border-slate-100 rounded text-[8px] font-black uppercase">
+                                        <span
+                                            class="px-2 py-1 bg-slate-50 text-slate-500 border border-slate-100 rounded text-[8px] font-black uppercase">
                                             {{ order.copies }} Qty
                                         </span>
 
                                         {% if order.custom_color_pages %}
                                         <div class="w-full mt-1">
-                                            <p class="text-[8px] text-slate-400 font-bold uppercase tracking-tighter mb-0">
-                                                Pages: <span class="text-orange-500">{{ order.custom_color_pages }}</span>
+                                            <p
+                                                class="text-[8px] text-slate-400 font-bold uppercase tracking-tighter mb-0">
+                                                Pages: <span class="text-orange-500">{{ order.custom_color_pages
+                                                    }}</span>
                                             </p>
                                         </div>
                                         {% endif %}
@@ -76,7 +86,8 @@
                                     {% if order.estimated_delivery_date %}
                                     <div class="mt-1">
                                         <span class="text-[8px] text-orange-500 font-black uppercase tracking-tight">
-                                            <i class="fas fa-truck-fast mr-1"></i> Est: {{ order.estimated_delivery_date|date:"d M" }}
+                                            <i class="fas fa-truck-fast mr-1"></i> Est: {{
+                                            order.estimated_delivery_date|date:"d M" }}
                                         </span>
                                     </div>
                                     {% endif %}
@@ -84,6 +95,17 @@
 
                                 <td class="text-center">
                                     <div class="flex flex-col items-center gap-1">
+                                        {% if order.coupon_code and order.discount_amount > 0 %}
+                                        <div class="text-[8px] text-green-600 font-black uppercase tracking-tight mb-1">
+                                            <i class="fas fa-tag"></i> {{ order.coupon_code }}
+                                        </div>
+                                        <span class="text-[9px] text-slate-400" style="text-decoration: line-through;">
+                                            ₹{{ order.original_price }}
+                                        </span>
+                                        <span class="text-[8px] text-green-600 font-bold">
+                                            -₹{{ order.discount_amount }}
+                                        </span>
+                                        {% endif %}
                                         <span class="font-black text-slate-900">₹{{ order.total_price }}</span>
                                         <span class="text-[7px] font-black uppercase tracking-tighter px-2 py-0.5 rounded
                                             {% if order.payment_status == 'Success' %} 
@@ -123,23 +145,28 @@
                 </div>
             </div>
             {% else %}
-            <div class="bg-white border border-slate-200 rounded-[2.5rem] p-16 text-center shadow-2xl" data-aos="zoom-in">
-                <div class="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-8 animate-bounce">
+            <div class="bg-white border border-slate-200 rounded-[2.5rem] p-16 text-center shadow-2xl"
+                data-aos="zoom-in">
+                <div
+                    class="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-8 animate-bounce">
                     <i class="fa-solid fa-folder-open text-blue-400 text-3xl"></i>
                 </div>
                 <h2 class="text-2xl font-black italic text-slate-900 mb-2 uppercase">No Order History Available</h2>
                 <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-8">
                     You haven't placed any print orders yet. Start your first document today.
                 </p>
-                <a href="{% url 'services' %}" class="inline-block px-10 py-4 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl shadow-blue-500/40 hover:-translate-y-1 transition-transform no-underline">
+                <a href="{% url 'services' %}"
+                    class="inline-block px-10 py-4 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl shadow-blue-500/40 hover:-translate-y-1 transition-transform no-underline">
                     Order Now <i class="fa-solid fa-arrow-right ml-2"></i>
                 </a>
             </div>
             {% endif %}
 
             <div class="mt-10 text-center">
-                <a href="{% url 'profile' %}" class="text-[9px] font-black text-slate-400 uppercase tracking-widest no-underline hover:text-blue-600 transition-all group">
-                    <i class="fa-solid fa-arrow-left mr-2 group-hover:-translate-x-1 transition-transform"></i> Back to Dashboard
+                <a href="{% url 'profile' %}"
+                    class="text-[9px] font-black text-slate-400 uppercase tracking-widest no-underline hover:text-blue-600 transition-all group">
+                    <i class="fa-solid fa-arrow-left mr-2 group-hover:-translate-x-1 transition-transform"></i> Back to
+                    Dashboard
                 </a>
             </div>
         </div>
@@ -152,15 +179,17 @@
         .table-responsive {
             border: 0;
         }
-        .table td, .table th {
+
+        .table td,
+        .table th {
             white-space: nowrap;
         }
     }
-    
+
     .shadow-2xl {
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
     }
-    
+
     .bg-slate-50\/50 {
         background-color: rgba(248, 250, 252, 0.5);
     }

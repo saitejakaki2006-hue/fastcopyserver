@@ -39,6 +39,7 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'fastCopyConfig.urls'
 
 # 4. TEMPLATES (Configured to find your custom Admin & Core templates)
+# 4. TEMPLATES (Configured to find your custom Admin & Core templates)
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -50,12 +51,10 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-<<<<<<< HEAD
-                'core.context_processors.cart_count',
+                
+                # Custom Processors
                 'core.context_processors.site_context', # Global site context (Holidays)
-=======
-                'core.context_processors.cart_count',  # Cart count globally available
->>>>>>> 87798d27c0daccfb5675ed1a1ab427eb83bcc2fc
+                'core.context_processors.cart_count',   # Cart count globally available
             ],
         },
     },

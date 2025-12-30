@@ -28,14 +28,11 @@ class UserProfile(models.Model):
     # Database storage for specific profile details
     mobile = models.CharField(max_length=15)
     address = models.TextField(null=True, blank=True)
-<<<<<<< HEAD
     
-    # Dealer-specific fields
+    # Dealer-specific fields (Consolidated and Cleaned)
     is_dealer = models.BooleanField(default=False)
     price_per_page = models.DecimalField(max_digits=5, decimal_places=2, default=1.50)
     dealer_locations = models.ManyToManyField(Location, blank=True, help_text="Select assigned locations for this dealer.")
-=======
->>>>>>> 87798d27c0daccfb5675ed1a1ab427eb83bcc2fc
 
     @property
     def name(self):
@@ -111,7 +108,14 @@ class Order(models.Model):
     document = models.FileField(upload_to='orders/pdfs/', null=True, blank=True)
     image_upload = models.ImageField(upload_to='orders/images/', null=True, blank=True)
 
+    # Pricing fields
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    # Coupon fields
+    coupon_code = models.CharField(max_length=50, null=True, blank=True, help_text="Applied coupon code")
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Discount amount from coupon")
+    original_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Original price before discount")
+    
     payment_status = models.CharField(
         max_length=20, 
         choices=[('Pending', 'Pending'), ('Success', 'Success'), ('Failed', 'Failed')],
@@ -132,11 +136,12 @@ class Order(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    estimated_delivery_date = models.DateField(null=True, blank=True) # New Delivery Field
-
-
+    estimated_delivery_date = models.DateField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
+        from .utils import calculate_delivery_date
+        from django.utils import timezone
+        
         is_new = self._state.adding
         if is_new and not self.order_id:
             self.order_id = f"TMP_{uuid.uuid4().hex[:10].upper()}"
@@ -149,6 +154,10 @@ class Order(models.Model):
                 self.order_source = 'SERVICE'
             elif self.transaction_id.startswith("TXN"):
                 self.order_source = 'CART'
+        
+        # Calculate estimated delivery date for new orders (if not already set)
+        if is_new and not self.estimated_delivery_date:
+            self.estimated_delivery_date = calculate_delivery_date(timezone.now())
 
         super().save(*args, **kwargs)
 
@@ -192,16 +201,25 @@ class PricingConfig(models.Model):
     """
     Centralized pricing configuration for all services.
     Supports separate pricing for admin users and dealers.
-    Only one instance should exist (singleton pattern).
     """
-    # Basic Printing Prices (per page)
+    # Basic Printing Prices (per page) - Single Side
     admin_price_per_page = models.DecimalField(
         max_digits=5, decimal_places=2, default=1.50,
-        help_text="Price per page for regular users (admin rate)"
+        help_text="Price per page for regular users (admin rate) - Single Side"
     )
     dealer_price_per_page = models.DecimalField(
         max_digits=5, decimal_places=2, default=1.20,
-        help_text="Price per page for dealer users"
+        help_text="Price per page for dealer users - Single Side"
+    )
+    
+    # Basic Printing Prices (per page) - Double Side
+    admin_price_per_page_double = models.DecimalField(
+        max_digits=5, decimal_places=2, default=2.50,
+        help_text="Price per page for regular users (admin rate) - Double Side"
+    )
+    dealer_price_per_page_double = models.DecimalField(
+        max_digits=5, decimal_places=2, default=2.00,
+        help_text="Price per page for dealer users - Double Side"
     )
     
     # Spiral Binding Prices
@@ -234,37 +252,46 @@ class PricingConfig(models.Model):
     custom_1_9_price_admin = models.DecimalField(max_digits=5, decimal_places=2, default=4.00, verbose_name="1/9 Layout Price (Admin)")
     custom_1_9_price_dealer = models.DecimalField(max_digits=5, decimal_places=2, default=3.00, verbose_name="1/9 Layout Price (Dealer)")
 
-    # Spiral Binding Tiers (Limits)
-    spiral_tier1_limit = models.IntegerField(default=40, help_text="Page limit for Tier 1")
-    spiral_tier2_limit = models.IntegerField(default=60, help_text="Page limit for Tier 2")
-    spiral_tier3_limit = models.IntegerField(default=90, help_text="Page limit for Tier 3")
+    # Spiral Binding Tiers
+    spiral_tier1_limit = models.IntegerField(default=40)
+    spiral_tier2_limit = models.IntegerField(default=60)
+    spiral_tier3_limit = models.IntegerField(default=90)
     
-    # Spiral Binding Tier Prices
-    spiral_tier1_price_admin = models.DecimalField(max_digits=6, decimal_places=2, default=20.00, verbose_name="Spiral Tier 1 Price (Admin)")
-    spiral_tier1_price_dealer = models.DecimalField(max_digits=6, decimal_places=2, default=20.00, verbose_name="Spiral Tier 1 Price (Dealer)")
+    spiral_tier1_price_admin = models.DecimalField(max_digits=6, decimal_places=2, default=20.00)
+    spiral_tier1_price_dealer = models.DecimalField(max_digits=6, decimal_places=2, default=20.00)
     
-    spiral_tier2_price_admin = models.DecimalField(max_digits=6, decimal_places=2, default=25.00, verbose_name="Spiral Tier 2 Price (Admin)")
-    spiral_tier2_price_dealer = models.DecimalField(max_digits=6, decimal_places=2, default=25.00, verbose_name="Spiral Tier 2 Price (Dealer)")
+    spiral_tier2_price_admin = models.DecimalField(max_digits=6, decimal_places=2, default=25.00)
+    spiral_tier2_price_dealer = models.DecimalField(max_digits=6, decimal_places=2, default=25.00)
     
-    spiral_tier3_price_admin = models.DecimalField(max_digits=6, decimal_places=2, default=30.00, verbose_name="Spiral Tier 3 Price (Admin)")
-    spiral_tier3_price_dealer = models.DecimalField(max_digits=6, decimal_places=2, default=30.00, verbose_name="Spiral Tier 3 Price (Dealer)")
+    spiral_tier3_price_admin = models.DecimalField(max_digits=6, decimal_places=2, default=30.00)
+    spiral_tier3_price_dealer = models.DecimalField(max_digits=6, decimal_places=2, default=30.00)
     
-    spiral_extra_price_admin = models.DecimalField(max_digits=6, decimal_places=2, default=5.00, help_text="Extra cost per 20 pages above Tier 3 (Admin)")
-    spiral_extra_price_dealer = models.DecimalField(max_digits=6, decimal_places=2, default=5.00, help_text="Extra cost per 20 pages above Tier 3 (Dealer)")
+    spiral_extra_price_admin = models.DecimalField(max_digits=6, decimal_places=2, default=5.00)
+    spiral_extra_price_dealer = models.DecimalField(max_digits=6, decimal_places=2, default=5.00)
     
-    # Color Printing Additional Charge (per color page)
+    # Color Printing Additional Charge - Single Side
     color_price_addition_admin = models.DecimalField(
         max_digits=5, decimal_places=2, default=5.00,
-        help_text="Additional charge per color page for regular users"
+        help_text="Additional charge per color page for regular users - Single Side"
     )
     color_price_addition_dealer = models.DecimalField(
         max_digits=5, decimal_places=2, default=3.00,
-        help_text="Additional charge per color page for dealers"
+        help_text="Additional charge per color page for dealers - Single Side"
+    )
+    
+    # Color Printing Additional Charge - Double Side
+    color_price_addition_admin_double = models.DecimalField(
+        max_digits=5, decimal_places=2, default=8.00,
+        help_text="Additional charge per color page for regular users - Double Side"
+    )
+    color_price_addition_dealer_double = models.DecimalField(
+        max_digits=5, decimal_places=2, default=6.00,
+        help_text="Additional charge per color page for dealers - Double Side"
     )
 
-    # Delivery Charge (Per Order)
-    delivery_price_admin = models.DecimalField(max_digits=5, decimal_places=2, default=40.00, verbose_name="Delivery Charge (Admin)")
-    delivery_price_dealer = models.DecimalField(max_digits=5, decimal_places=2, default=30.00, verbose_name="Delivery Charge (Dealer)")
+    # Delivery Charge
+    delivery_price_admin = models.DecimalField(max_digits=5, decimal_places=2, default=40.00)
+    delivery_price_dealer = models.DecimalField(max_digits=5, decimal_places=2, default=30.00)
     
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -278,12 +305,10 @@ class PricingConfig(models.Model):
     
     @classmethod
     def get_config(cls):
-        """Get or create the single pricing configuration instance"""
         config, created = cls.objects.get_or_create(pk=1)
         return config
     
     def save(self, *args, **kwargs):
-        """Ensure only one PricingConfig instance exists"""
         self.pk = 1
         super().save(*args, **kwargs)
 
@@ -297,3 +322,117 @@ class PublicHoliday(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.date})"
+
+
+# --- 8. COUPON SYSTEM ---
+class Coupon(models.Model):
+    """
+    Coupon model for discount management.
+    Supports percentage-based discounts with various validation rules.
+    """
+    code = models.CharField(
+        max_length=50, 
+        unique=True, 
+        help_text="Unique coupon code (e.g., SAVE20, WELCOME10)"
+    )
+    
+    discount_percentage = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2,
+        help_text="Discount percentage (e.g., 10.00 for 10% off)"
+    )
+    
+    valid_from = models.DateTimeField(
+        help_text="Coupon becomes active from this date/time"
+    )
+    
+    valid_until = models.DateTimeField(
+        help_text="Coupon expires after this date/time"
+    )
+    
+    minimum_order_amount = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        default=0.00,
+        help_text="Minimum order amount required to use this coupon"
+    )
+    
+    max_usage_count = models.IntegerField(
+        default=0,
+        help_text="Maximum number of times this coupon can be used (0 = unlimited)"
+    )
+    
+    current_usage_count = models.IntegerField(
+        default=0,
+        editable=False,
+        help_text="Current number of times this coupon has been used"
+    )
+    
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Enable/disable this coupon"
+    )
+    
+    description = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Internal description or notes about this coupon"
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Coupon"
+        verbose_name_plural = "Coupons"
+    
+    def __str__(self):
+        return f"{self.code} ({self.discount_percentage}% off)"
+    
+    def is_valid(self):
+        """Check if coupon is currently valid"""
+        from django.utils import timezone
+        now = timezone.now()
+        
+        if not self.is_active:
+            return False, "This coupon is not active"
+        
+        if now < self.valid_from:
+            return False, "This coupon is not yet valid"
+        
+        if now > self.valid_until:
+            return False, "This coupon has expired"
+        
+        if self.max_usage_count > 0 and self.current_usage_count >= self.max_usage_count:
+            return False, "This coupon has reached its usage limit"
+        
+        return True, "Coupon is valid"
+    
+    def can_apply_to_order(self, order_total):
+        """Check if coupon can be applied to an order with given total"""
+        is_valid, message = self.is_valid()
+        
+        if not is_valid:
+            return False, message
+        
+        if order_total < self.minimum_order_amount:
+            return False, f"Minimum order amount of ₹{self.minimum_order_amount} required"
+        
+        return True, "Coupon can be applied"
+    
+    def calculate_discount(self, order_total):
+        """Calculate discount amount for given order total"""
+        can_apply, message = self.can_apply_to_order(order_total)
+        
+        if not can_apply:
+            return 0.00, message
+        
+        # Convert Decimal to float to avoid type mismatch
+        discount_amount = (float(order_total) * float(self.discount_percentage)) / 100
+        return float(discount_amount), f"{self.discount_percentage}% discount applied"
+    
+    def increment_usage(self):
+        """Increment usage count when coupon is used"""
+        self.current_usage_count += 1
+        self.save()

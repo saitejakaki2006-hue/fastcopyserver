@@ -37,19 +37,19 @@ urlpatterns = [
     # checkout_summary: Displays either Direct Item or Cart Items based on source prefix
     path('checkout/summary/', views.cart_checkout_summary, name='cart_checkout_summary'),
 
+    # --- 🎟️ Coupons ---
+    path('coupon/apply/', views.apply_coupon, name='apply_coupon'),
+    path('coupon/remove/', views.remove_coupon, name='remove_coupon'),
+
     # --- 💳 Payments ---
     path('payment/initiate/', views.initiate_payment, name='initiate_payment'),
     path('payment/cashfree-checkout/', views.cashfree_checkout, name='cashfree_checkout'),
     path('payment/callback/', views.payment_callback, name='payment_callback'),    
-    # bypass_payment: Test/Bypass logic that handles DIR/TXN isolation automatically
-<<<<<<< HEAD
-    
+
     # --- 🏪 Dealer Dashboard ---
     path('dealer/login/', views.dealer_login_view, name='dealer_login'),
     path('dealer/dashboard/', views.dealer_dashboard_view, name='dealer_dashboard'),
     path('dealer/logout/', views.dealer_logout_view, name='dealer_logout'),
     path('dealer/update-order/<int:order_id>/', views.update_order_status, name='update_order_status'),
     path('dealer/download/<int:order_id>/', views.dealer_download_file, name='dealer_download_file'),
-=======
->>>>>>> 87798d27c0daccfb5675ed1a1ab427eb83bcc2fc
 ]

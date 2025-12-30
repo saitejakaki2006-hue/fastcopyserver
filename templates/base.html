@@ -23,7 +23,7 @@
         .mobile-toggle {
             display: none;
             cursor: pointer;
-            z-index: 101;
+            z-index: 1100;
         }
 
         @media (max-width: 991px) {
@@ -46,7 +46,7 @@
                 padding: 15px 20px 30px 20px;
                 border-bottom: 1px solid #e2e8f0;
                 box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-                z-index: 100;
+                z-index: 1000;
             }
 
             .nav-links-container.active {
@@ -84,16 +84,23 @@
             .desktop-actions {
                 display: none !important;
             }
-            
+
             .mobile-only-item {
                 display: flex !important;
             }
-            
-            /* Fixing Marquee cutting off in Mobile */
+
+            /* Enhanced Marquee Mobile Engine */
             .marquee-wrapper {
-                height: 40px !important;
+                height: 35px !important;
                 display: flex;
                 align-items: center;
+                overflow: hidden;
+            }
+
+            .marquee-content {
+                font-size: 10px !important;
+                /* Scaled down for mobile fit */
+                line-height: 35px;
             }
         }
 
@@ -121,7 +128,7 @@
             .mobile-only-item {
                 display: none !important;
             }
-            
+
             /* Desktop Hover Dropdown */
             .dropdown:hover .dropdown-menu {
                 display: block;
@@ -130,7 +137,7 @@
                 visibility: visible;
                 transform: translateY(0);
             }
-            
+
             .dropdown-menu {
                 display: block;
                 opacity: 0;
@@ -175,32 +182,81 @@
             filter: blur(100px);
             z-index: 1;
         }
-        
+
         .btn-3d {
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        
+
         .btn-3d:hover {
             transform: translateY(-3px);
         }
 
-        /* Fixed Navbar & Content Spacing */
+        /* Fixed Navbar & Content Spacing Fix */
         .glass-nav {
-            z-index: 1050;
+            z-index: 2000;
+            /* Higher than marquee */
+            height: 65px;
+            /* Explicit height for calculation */
+            display: flex;
+            align-items: center;
         }
-        
+
+
         .marquee-container {
-            z-index: 1040;
+            z-index: 1000;
             position: relative;
+            margin-top: 65px;
+            /* Offset by navbar height to prevent overlap */
+        }
+
+        /* Modern Marquee Animation - Works on all browsers including VPS */
+        .marquee-wrapper {
+            overflow: hidden;
+            position: relative;
+            height: 35px;
+            display: flex;
+            align-items: center;
+        }
+
+        .marquee-content {
+            display: flex;
+            white-space: nowrap;
+            animation: marquee 30s linear infinite;
+            will-change: transform;
+        }
+
+        .marquee-item {
+            display: inline-block;
+        }
+
+        @keyframes marquee {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        /* Pause animation on hover */
+        .marquee-wrapper:hover .marquee-content {
+            animation-play-state: paused;
+        }
+
+        /* Prevent content jump */
+        main {
+            padding-top: 0 !important;
         }
     </style>
 </head>
 
 <body class="bg-slate-50 text-slate-900 flex flex-col min-h-screen">
 
-    <nav class="glass-nav fixed w-full z-50 top-0 border-b border-slate-200 bg-white/80 backdrop-blur-md">
+    <nav class="glass-nav fixed w-full top-0 border-b border-slate-200 bg-white/80 backdrop-blur-md">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center relative">
-            <a href="{% url 'home' %}" class="text-2xl font-black italic tracking-tighter no-underline text-slate-900 group">
+            <a href="{% url 'home' %}"
+                class="text-2xl font-black italic tracking-tighter no-underline text-slate-900 group">
                 FAST<span class="text-blue-600 transition-colors group-hover:text-blue-800">COPY</span>
             </a>
 
@@ -232,12 +288,14 @@
                 <a href="{% url 'cart' %}" class="nav-link-custom no-underline mobile-only-item">
                     <i class="fa-solid fa-cart-shopping text-blue-600"></i> My Cart
                     {% if cart_item_count %}
-                    <span class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-full ml-auto">{{ cart_item_count }}</span>
+                    <span class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-full ml-auto">{{ cart_item_count
+                        }}</span>
                     {% endif %}
                 </a>
 
                 {% if user.is_authenticated %}
-                <a href="{% url 'profile' %}" class="nav-link-custom no-underline mobile-only-item mobile-highlight-item">
+                <a href="{% url 'profile' %}"
+                    class="nav-link-custom no-underline mobile-only-item mobile-highlight-item">
                     <i class="fa-solid fa-user-circle"></i> Profile
                 </a>
                 {% else %}
@@ -249,24 +307,31 @@
 
             <div class="nav-actions flex items-center gap-4">
                 <div class="desktop-actions flex items-center gap-4">
-                    <a href="{% url 'cart' %}" class="relative p-2 text-slate-700 hover:text-blue-600 transition-transform hover:scale-110 no-underline">
+                    <a href="{% url 'cart' %}"
+                        class="relative p-2 text-slate-700 hover:text-blue-600 transition-transform hover:scale-110 no-underline">
                         <i class="fa-solid fa-cart-shopping text-xl"></i>
                         {% if cart_item_count %}
-                        <span class="absolute top-0 right-0 bg-blue-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full ring-2 ring-white">
+                        <span
+                            class="absolute top-0 right-0 bg-blue-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full ring-2 ring-white">
                             {{ cart_item_count }}
                         </span>
                         {% endif %}
                     </a>
                     {% if user.is_authenticated %}
                     <div class="hidden sm:block h-6 w-[1px] bg-slate-200 mx-1"></div>
-                    <a href="{% url 'profile' %}" class="btn-3d flex items-center gap-2 bg-white border border-slate-200 px-4 py-2 rounded-full no-underline shadow-sm">
-                        <div class="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-[10px]">
+                    <a href="{% url 'profile' %}"
+                        class="btn-3d flex items-center gap-2 bg-white border border-slate-200 px-4 py-2 rounded-full no-underline shadow-sm">
+                        <div
+                            class="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-[10px]">
                             <i class="fa-solid fa-user"></i>
                         </div>
-                        <span class="font-black uppercase tracking-widest text-slate-800 m-0" style="font-size: 9px;">Profile</span>
+                        <span class="font-black uppercase tracking-widest text-slate-800 m-0"
+                            style="font-size: 9px;">Profile</span>
                     </a>
                     {% else %}
-                    <a href="{% url 'login' %}" class="btn-3d px-6 py-2 bg-slate-900 text-white rounded-full font-black uppercase tracking-widest no-underline shadow-lg" style="font-size: 10px;">Sign In</a>
+                    <a href="{% url 'login' %}"
+                        class="btn-3d px-6 py-2 bg-slate-900 text-white rounded-full font-black uppercase tracking-widest no-underline shadow-lg"
+                        style="font-size: 10px;">Sign In</a>
                     {% endif %}
                 </div>
                 <div class="mobile-toggle" onclick="toggleMenu()">
@@ -276,30 +341,42 @@
         </div>
     </nav>
 
-    <main class="pt-[70px] md:pt-24 flex-grow">
-        <div class="marquee-container bg-indigo-950 text-white py-2.5 shadow-lg border-b border-indigo-800">
+    <main class="flex-grow">
+        <div class="marquee-container bg-indigo-950 text-white py-1 shadow-lg border-b border-indigo-800">
             <div class="container mx-auto px-4 marquee-wrapper">
-                <marquee scrollamount="6" class="text-[12px] uppercase font-black tracking-widest flex items-center h-full">
-                    <span class="mr-12"><i class="fas fa-check-circle text-green-400 mr-2"></i> Order Before 8 PM: Delivery on {{ marquee_date_early|date:"l, d M" }}</span>
-                    <span class="mr-12"><i class="fas fa-clock text-orange-400 mr-2"></i> Order After 8 PM: Delivery on {{ marquee_date_late|date:"l, d M" }}</span>
-                    <span class="mr-12 text-red-300"><i class="fas fa-ban mr-2"></i> Sunday: Closed</span>
+                <div class="marquee-content text-[12px] uppercase font-black tracking-widest">
+                    <span class="marquee-item mr-12"><i class="fas fa-check-circle text-green-400 mr-2"></i> Order
+                        Before 8 PM: Delivery on {{ marquee_date_early|date:"l, d M" }}</span>
+                    <span class="marquee-item mr-12"><i class="fas fa-clock text-orange-400 mr-2"></i> Order After 8 PM:
+                        Delivery on {{ marquee_date_late|date:"l, d M" }}</span>
+                    <span class="marquee-item mr-12 text-red-300"><i class="fas fa-ban mr-2"></i> Sunday: Closed</span>
                     {% if upcoming_holidays %}
-                    <span class="text-yellow-400">
-                        <i class="fas fa-calendar-day mr-2"></i> Closures: 
+                    <span class="marquee-item text-yellow-400">
+                        <i class="fas fa-calendar-day mr-2"></i> Closures:
                         {% for h in upcoming_holidays %}
                         {{ h.name }} ({{ h.date|date:"d M" }}){% if not forloop.last %} &bull; {% endif %}
                         {% endfor %}
                     </span>
                     {% endif %}
-                </marquee>
+                    <!-- Duplicate content for seamless loop -->
+                    <span class="marquee-item mr-12"><i class="fas fa-check-circle text-green-400 mr-2"></i> Order
+                        Before 8 PM: Delivery on {{ marquee_date_early|date:"l, d M" }}</span>
+                    <span class="marquee-item mr-12"><i class="fas fa-clock text-orange-400 mr-2"></i> Order After 8 PM:
+                        Delivery on {{ marquee_date_late|date:"l, d M" }}</span>
+                    <span class="marquee-item mr-12 text-red-300"><i class="  fas fa-ban mr-2"></i> Sunday:
+                        Closed</span>
+                </div>
             </div>
         </div>
+
 
         {% if messages %}
         <div class="container mx-auto px-4 mb-4 pt-4">
             {% for message in messages %}
-            <div data-aos="fade-left" class="flex items-center p-4 mb-3 rounded-2xl {% if message.tags == 'success' %}bg-green-50 text-green-700 border border-green-200{% else %}bg-red-50 text-red-700 border border-red-200{% endif %} shadow-sm">
-                <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check{% else %}fa-circle-exclamation{% endif %} mr-3 fs-5"></i>
+            <div data-aos="fade-left"
+                class="flex items-center p-4 mb-3 rounded-2xl {% if message.tags == 'success' %}bg-green-50 text-green-700 border border-green-200{% else %}bg-red-50 text-red-700 border border-red-200{% endif %} shadow-sm">
+                <i
+                    class="fa-solid {% if message.tags == 'success' %}fa-circle-check{% else %}fa-circle-exclamation{% endif %} mr-3 fs-5"></i>
                 <p class="text-[10px] font-black uppercase tracking-widest m-0">{{ message }}</p>
             </div>
             {% endfor %}
@@ -311,60 +388,94 @@
 
     <footer class="dark-footer pt-24 pb-12 mt-20 relative overflow-hidden bg-slate-950 text-white">
         <div class="absolute top-0 left-0 w-96 h-96 bg-blue-600/10 floating-blob rounded-full"></div>
-        <div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-purple-600/5 floating-blob rounded-full" style="animation-delay: -2s;"></div>
+        <div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-purple-600/5 floating-blob rounded-full"
+            style="animation-delay: -2s;"></div>
 
         <div class="container mx-auto px-4 relative z-10">
             <div class="row g-5">
                 <div class="col-lg-4 text-center text-lg-start" data-aos="fade-right">
                     <div class="mb-8">
-                        <a href="{% url 'home' %}" class="text-4xl font-black italic tracking-tighter no-underline text-white">
+                        <a href="{% url 'home' %}"
+                            class="text-4xl font-black italic tracking-tighter no-underline text-white">
                             FAST<span class="text-blue-500">COPY</span>
                         </a>
                     </div>
-                    <p class="text-slate-400 font-bold text-[11px] leading-relaxed mt-4 max-w-sm mx-auto mx-lg-0 uppercase tracking-widest opacity-80">
-                        FastCopy Premium Hub defines the gold standard in digital documentation. High-fidelity printing solutions engineered for precision.
+                    <p
+                        class="text-slate-400 font-bold text-[11px] leading-relaxed mt-4 max-w-sm mx-auto mx-lg-0 uppercase tracking-widest opacity-80">
+                        FastCopy Premium Hub defines the gold standard in digital documentation. High-fidelity printing
+                        solutions engineered for precision.
                     </p>
                     <div class="flex justify-center lg:justify-start gap-5 mt-8">
-                        <a href="#" class="text-slate-400 hover:text-blue-500 transition-all transform hover:scale-125"><i class="fa-brands fa-instagram text-xl"></i></a>
-                        <a href="#" class="text-slate-400 hover:text-blue-500 transition-all transform hover:scale-125"><i class="fa-brands fa-whatsapp text-xl"></i></a>
-                        <a href="#" class="text-slate-400 hover:text-blue-500 transition-all transform hover:scale-125"><i class="fa-brands fa-linkedin text-xl"></i></a>
+                        <a href="#"
+                            class="text-slate-400 hover:text-blue-500 transition-all transform hover:scale-125"><i
+                                class="fa-brands fa-instagram text-xl"></i></a>
+                        <a href="#"
+                            class="text-slate-400 hover:text-blue-500 transition-all transform hover:scale-125"><i
+                                class="fa-brands fa-whatsapp text-xl"></i></a>
+                        <a href="#"
+                            class="text-slate-400 hover:text-blue-500 transition-all transform hover:scale-125"><i
+                                class="fa-brands fa-linkedin text-xl"></i></a>
                     </div>
                 </div>
 
                 <div class="col-6 col-md-3 col-lg-2 offset-lg-1" data-aos="fade-up" data-aos-delay="100">
-                    <h6 class="footer-heading mb-8 font-black uppercase tracking-widest text-blue-500 text-xs">Core Platform</h6>
+                    <h6 class="footer-heading mb-8 font-black uppercase tracking-widest text-blue-500 text-xs">Core
+                        Platform</h6>
                     <ul class="list-unstyled space-y-4">
-                        <li><a href="{% url 'home' %}" class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Main Hub</a></li>
-                        <li><a href="{% url 'services' %}" class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Print Services</a></li>
-                        <li><a href="{% url 'cart' %}" class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Active Cart</a></li>
-                        <li><a href="{% url 'profile' %}" class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Live Status</a></li>
+                        <li><a href="{% url 'home' %}"
+                                class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Main
+                                Hub</a></li>
+                        <li><a href="{% url 'services' %}"
+                                class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Print
+                                Services</a></li>
+                        <li><a href="{% url 'cart' %}"
+                                class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Active
+                                Cart</a></li>
+                        <li><a href="{% url 'profile' %}"
+                                class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Live
+                                Status</a></li>
                     </ul>
                 </div>
 
                 <div class="col-6 col-md-3 col-lg-2" data-aos="fade-up" data-aos-delay="200">
-                    <h6 class="footer-heading mb-8 font-black uppercase tracking-widest text-blue-500 text-xs">Legal Center</h6>
+                    <h6 class="footer-heading mb-8 font-black uppercase tracking-widest text-blue-500 text-xs">Legal
+                        Center</h6>
                     <ul class="list-unstyled space-y-4">
-                        <li><a href="{% url 'about' %}" class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">The Story</a></li>
-                        <li><a href="{% url 'contact' %}" class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Support Desk</a></li>
-                        <li><a href="{% url 'privacy_policy' %}" class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Data Policy</a></li>
-                        <li><a href="{% url 'terms_conditions' %}" class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Service Terms</a></li>
+                        <li><a href="{% url 'about' %}"
+                                class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">The
+                                Story</a></li>
+                        <li><a href="{% url 'contact' %}"
+                                class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Support
+                                Desk</a></li>
+                        <li><a href="{% url 'privacy_policy' %}"
+                                class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Data
+                                Policy</a></li>
+                        <li><a href="{% url 'terms_conditions' %}"
+                                class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Service
+                                Terms</a></li>
                     </ul>
                 </div>
 
                 <div class="col-lg-3 col-md-6" data-aos="fade-left" data-aos-delay="300">
-                    <h6 class="footer-heading mb-8 font-black uppercase tracking-widest text-blue-500 text-xs">Reach Us</h6>
+                    <h6 class="footer-heading mb-8 font-black uppercase tracking-widest text-blue-500 text-xs">Reach Us
+                    </h6>
                     <div class="space-y-5">
                         <div class="flex items-center gap-4 group">
                             <i class="fa-solid fa-phone text-blue-500 group-hover:rotate-12 transition-transform"></i>
-                            <span class="text-[11px] font-black text-slate-300 uppercase tracking-tighter">+91 94410 55486</span>
+                            <span class="text-[11px] font-black text-slate-300 uppercase tracking-tighter">+91 94410
+                                55486</span>
                         </div>
                         <div class="flex items-center gap-4 group">
-                            <i class="fa-solid fa-envelope text-blue-500 group-hover:scale-110 transition-transform"></i>
-                            <span class="text-[11px] font-black text-slate-300 lowercase tracking-tighter">fastcopy003@gmail.com</span>
+                            <i
+                                class="fa-solid fa-envelope text-blue-500 group-hover:scale-110 transition-transform"></i>
+                            <span
+                                class="text-[11px] font-black text-slate-300 lowercase tracking-tighter">fastcopy003@gmail.com</span>
                         </div>
                         <div class="flex items-center gap-4 group">
                             <i class="fa-solid fa-location-dot text-blue-500 group-hover:bounce transition-all"></i>
-                            <span class="text-[11px] font-black text-slate-300 uppercase tracking-tighter">Visakhapatnam, Andhra Pradesh</span>
+                            <span
+                                class="text-[11px] font-black text-slate-300 uppercase tracking-tighter">Visakhapatnam,
+                                Andhra Pradesh</span>
                         </div>
                     </div>
                 </div>
@@ -380,7 +491,8 @@
                         DESIGNED & ENCRYPTED BY <span class="text-blue-600/50">FASTCOPY-CORE ENGINE</span>
                     </p>
                 </div>
-                <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="group btn-3d flex items-center gap-5 bg-blue-600 text-white px-10 py-4 rounded-full shadow-2xl hover:shadow-blue-500/40 transition-all">
+                <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
+                    class="group btn-3d flex items-center gap-5 bg-blue-600 text-white px-10 py-4 rounded-full shadow-2xl hover:shadow-blue-500/40 transition-all">
                     <span class="text-[10px] font-black uppercase tracking-widest">Return to Top</span>
                     <i class="fa-solid fa-arrow-up text-sm group-hover:-translate-y-2 transition-transform"></i>
                 </button>
@@ -391,7 +503,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
-        // Initialization
         AOS.init({
             duration: 1000,
             once: true,
@@ -399,14 +510,13 @@
             disable: 'mobile'
         });
 
-        // Navigation Controller
         function toggleMenu() {
             const nav = document.getElementById('navLinks');
             const icon = document.getElementById('menuIcon');
             const isClosing = nav.classList.contains('active');
-            
+
             nav.classList.toggle('active');
-            
+
             if (!isClosing) {
                 icon.classList.replace('fa-bars-staggered', 'fa-xmark');
             } else {
@@ -414,7 +524,6 @@
             }
         }
 
-        // Close menu on backdrop click
         document.addEventListener('click', (e) => {
             const nav = document.getElementById('navLinks');
             const toggle = document.querySelector('.mobile-toggle');

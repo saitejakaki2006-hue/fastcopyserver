@@ -1,32 +1,25 @@
-<<<<<<< HEAD
 {% extends 'base.html' %}
-=======
-{% extends 'base.html' %} 
->>>>>>> 87798d27c0daccfb5675ed1a1ab427eb83bcc2fc
 {% load static %}
 
 {% block content %}
 <div class="container py-4 py-md-5 min-vh-100 d-flex flex-column justify-content-center">
     <div class="row justify-content-center">
         <div class="col-12 col-md-10 col-lg-7 col-xl-6">
-<<<<<<< HEAD
 
-=======
-            
->>>>>>> 87798d27c0daccfb5675ed1a1ab427eb83bcc2fc
-            <div class="d-flex justify-content-between mb-5 px-4 position-relative align-items-center" style="z-index: 1;">
+            <div class="d-flex justify-content-between mb-5 px-4 position-relative align-items-center"
+                style="z-index: 1;">
                 <div class="text-center">
                     <div class="step-icon bg-primary text-white shadow-sm mb-2 mx-auto border-0">
                         <i class="fas fa-check" style="font-size: 10px;"></i>
                     </div>
                     <span class="text-[10px] font-black uppercase text-primary tracking-widest">Cart</span>
                 </div>
-<<<<<<< HEAD
 
                 <div class="step-line bg-primary"></div>
 
                 <div class="text-center">
-                    <div class="step-icon bg-primary text-white shadow-lg mb-2 mx-auto ring-4 ring-primary ring-opacity-50 border-0">
+                    <div
+                        class="step-icon bg-primary text-white shadow-lg mb-2 mx-auto ring-4 ring-primary ring-opacity-50 border-0">
                         2
                     </div>
                     <span class="text-[10px] font-black uppercase text-primary tracking-widest">Review</span>
@@ -35,71 +28,49 @@
                 <div class="step-line bg-slate-700"></div>
 
                 <div class="text-center">
-                    <div class="step-icon bg-slate-800 text-slate-500 mb-2 mx-auto border border-slate-700">
+                    <div class="step-icon bg-slate-800 text-white text-slate-500 mb-2 mx-auto border border-slate-700">
                         3
                     </div>
-=======
-                
-                <div class="step-line bg-primary"></div>
-                
-                <div class="text-center">
-                    <div class="step-icon bg-primary text-white shadow-lg mb-2 mx-auto ring-4 ring-primary ring-opacity-50 border-0">2</div>
-                    <span class="text-[10px] font-black uppercase text-primary tracking-widest">Review</span>
-                </div>
-                
-                <div class="step-line bg-slate-700"></div>
-                
-                <div class="text-center">
-                    <div class="step-icon bg-slate-800 text-white text-slate-500 mb-2 mx-auto border border-slate-700">3</div>
->>>>>>> 87798d27c0daccfb5675ed1a1ab427eb83bcc2fc
                     <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">Payment</span>
                 </div>
             </div>
 
-            <div class="card border-0 bg-dark text-white rounded-[2rem] shadow-2xl overflow-hidden border-top border-primary border-5" data-aos="zoom-in">
+            <div class="card border-0 bg-dark text-white rounded-[2rem] shadow-2xl overflow-hidden border-top border-primary border-5"
+                data-aos="zoom-in">
                 <div class="card-body p-4 p-md-5">
-<<<<<<< HEAD
 
                     <header class="text-center mb-5">
-                        <h2 class="text-uppercase fw-black italic mb-1 tracking-tighter">Final <span class="text-primary">Summary</span></h2>
-                        <p class="text-white-50 text-[10px] font-bold uppercase tracking-widest">Please verify your order details</p>
+                        <h2 class="text-uppercase fw-black italic mb-1 tracking-tighter">Final <span
+                                class="text-primary">Summary</span></h2>
+                        <p class="text-white-50 text-[10px] font-bold uppercase tracking-widest">Please verify your
+                            order details</p>
                     </header>
 
-=======
-                    
-                    <header class="text-center mb-5">
-                        <h2 class="text-uppercase fw-black italic mb-1 tracking-tighter">Order <span class="text-primary">Summary</span></h2>
-                        <p class="text-white-50 text-[10px] font-bold uppercase tracking-widest">Verify your details before proceeding</p>
-                    </header>
-                    
->>>>>>> 87798d27c0daccfb5675ed1a1ab427eb83bcc2fc
                     <div class="amount-banner mb-4">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <span class="text-uppercase text-[10px] fw-black text-primary tracking-widest d-block">Grand Total</span>
-<<<<<<< HEAD
+                                <span
+                                    class="text-uppercase text-[10px] fw-black text-primary tracking-widest d-block">Grand
+                                    Total</span>
                                 <small class="text-white-50 uppercase text-[9px]">
-                                    {{ items_count }} Item{{ items_count|pluralize }} • Total Units: {{ total_pages }} Pgs
+                                    {{ items_count }} Item{{ items_count|pluralize }} • Total Units: {{ total_pages }}
+                                    Pgs
                                 </small>
                             </div>
                             <div class="text-end">
-                                <h1 class="fw-black mb-0 display-6 italic tracking-tighter text-white">₹{{ grand_total|floatformat:2 }}</h1>
-=======
-                                <small class="text-white-50 uppercase text-[9px]">{{ items_count }} Items • Inc. Delivery</small>
-                            </div>
-                            <div class="text-end">
-                                <h1 class="fw-black mb-0 display-6 italic tracking-tighter text-white">₹{{ grand_total }}</h1>
->>>>>>> 87798d27c0daccfb5675ed1a1ab427eb83bcc2fc
+                                <h1 class="fw-black mb-0 display-6 italic tracking-tighter text-white">
+                                    ₹<span id="grandTotalDisplay">{{ grand_total|floatformat:2 }}</span>
+                                </h1>
                             </div>
                         </div>
                     </div>
 
-<<<<<<< HEAD
                     <div class="alert mt-3 d-flex align-items-center border-0 shadow-sm rounded-4 p-3"
                         style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); color: #b45309;">
                         <i class="fas fa-truck-clock fs-4 me-3"></i>
                         <div class="lh-1">
-                            <small class="fw-bold text-uppercase d-block mb-1" style="font-size: 0.6rem; letter-spacing: 1.5px;">
+                            <small class="fw-bold text-uppercase d-block mb-1"
+                                style="font-size: 0.6rem; letter-spacing: 1.5px;">
                                 Estimated Arrival
                             </small>
                             <span class="fw-black h6 mb-0 text-uppercase tracking-tight">
@@ -117,21 +88,25 @@
                         <div class="checkout-scroll-area pe-2" style="max-height: 220px; overflow-y: auto;">
                             <div class="d-grid gap-2">
                                 {% for item in cart_items %}
-                                <div class="item-card p-3 rounded-4 bg-white bg-opacity-5 border border-white border-opacity-5 transition-all">
+                                <div
+                                    class="item-card p-3 rounded-4 bg-white bg-opacity-5 border border-white border-opacity-5 transition-all">
                                     <div class="row align-items-center g-2">
                                         <div class="col-8 overflow-hidden pe-2">
-                                            <p class="small mb-1 fw-black text-uppercase italic text-truncate text-white">
+                                            <p
+                                                class="small mb-1 fw-black text-uppercase italic text-truncate text-white">
                                                 {{ item.service_name }}
                                             </p>
                                             <div class="d-flex align-items-center gap-2">
                                                 <i class="fas fa-file-pdf text-primary" style="font-size: 0.65rem;"></i>
-                                                <p class="mb-0 text-white-50 text-truncate font-bold" style="font-size: 0.65rem;">
+                                                <p class="mb-0 text-white-50 text-truncate font-bold"
+                                                    style="font-size: 0.65rem;">
                                                     {{ item.document_name|default:"Print Document" }}
                                                 </p>
                                             </div>
                                         </div>
                                         <div class="col-4 text-end">
-                                            <span class="fw-black text-primary" style="font-size: 0.85rem;">₹{{ item.total_price }}</span>
+                                            <span class="fw-black text-primary" style="font-size: 0.85rem;">₹{{
+                                                item.total_price }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -140,85 +115,101 @@
                         </div>
                     </div>
 
-                    <div class="d-flex justify-content-between align-items-center mt-2 mb-5 px-3 py-2 border-bottom border-white border-opacity-10">
-                        <span class="text-white text-[10px] font-black uppercase tracking-widest">Campus Delivery Fee</span>
+                    <div
+                        class="d-flex justify-content-between align-items-center mt-2 mb-3 px-3 py-2 border-bottom border-white border-opacity-10">
+                        <span class="text-white-50 text-[10px] font-black uppercase tracking-widest">Campus Delivery
+                            Fee</span>
                         <span class="text-success fw-black uppercase tracking-widest" style="font-size: 11px;">
                             {% if delivery_charge > 0 %}₹{{ delivery_charge }}{% else %}FREE{% endif %}
                         </span>
+                    </div>
+
+                    <!-- Coupon Section -->
+                    <div class="coupon-section mb-4 px-3">
+                        {% if not coupon_valid %}
+                        <div class="coupon-input-container">
+                            <button
+                                class="btn-toggle-coupon w-100 text-start d-flex justify-content-between align-items-center"
+                                onclick="document.getElementById('couponInputArea').classList.toggle('d-none')">
+                                <span class="text-primary text-[10px] font-black uppercase tracking-widest">
+                                    <i class="fas fa-ticket me-2"></i>Have a Coupon Code?
+                                </span>
+                                <i class="fas fa-chevron-down text-primary small"></i>
+                            </button>
+
+                            <div id="couponInputArea" class="d-none mt-3">
+                                <div class="input-group">
+                                    <input type="text" id="couponCodeInput"
+                                        class="form-control coupon-input text-uppercase" placeholder="Enter coupon code"
+                                        style="background: rgba(37, 99, 235, 0.1); border: 1px solid rgba(37, 99, 235, 0.3); color: white; font-weight: bold; letter-spacing: 1px;">
+                                    <button class="btn btn-primary px-4" onclick="applyCoupon()" id="applyBtn">
+                                        <span class="text-[10px] font-black tracking-widest">APPLY</span>
+                                    </button>
+                                </div>
+                                <div id="couponMessage" class="mt-2 text-[10px]"></div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="coupon-applied p-3 rounded-3"
+                            style="background: linear-gradient(135deg, #15803d 0%, #166534 100%);">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-white text-[10px] mb-1">
+                                        <i class="fas fa-check-circle me-1"></i>COUPON APPLIED
+                                    </div>
+                                    <div class="text-white fw-black" style="letter-spacing: 2px; font-size: 13px;">
+                                        {{ coupon_code }}
+                                    </div>
+                                </div>
+                                <button class="btn btn-sm" onclick="removeCoupon()"
+                                    style="background: rgba(255,255,255,0.2); color: white; font-size: 10px; padding: 4px 12px;">
+                                    <i class="fas fa-times me-1"></i>Remove
+                                </button>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Price Breakdown -->
+                    <div class="price-breakdown px-3 mb-4">
+                        {% if coupon_valid and discount_amount > 0 %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-white-50 text-[10px] tracking-widest">Original Price</span>
+                            <span class="text-white-50" style="text-decoration: line-through; font-size: 11px;">
+                                ₹<span id="originalPrice">{{ original_total }}</span>
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-success text-[10px] font-black tracking-widest">
+                                <i class="fas fa-tag me-1"></i>Discount
+                            </span>
+                            <span class="text-success fw-black" style="font-size: 13px;">
+                                -₹<span id="discountAmount">{{ discount_amount }}</span>
+                            </span>
+                        </div>
+                        {% endif %}
                     </div>
 
                     <div class="text-center mb-4">
                         <a href="{% url 'initiate_payment' %}" id="pay-btn"
                             onclick="this.classList.add('disabled'); this.innerHTML='<i class=\'fas fa-circle-notch fa-spin me-2\'></i> SECURING SESSION...';"
                             class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-3 px-5 py-3 rounded-pill no-underline transition-all shadow-xl hover-scale">
-                            <span class="font-black text-[11px] text-uppercase tracking-widest">Confirm & Pay ₹{{ grand_total|floatformat:2 }}</span>
+                            <span class="font-black text-[11px] text-uppercase tracking-widest">
+                                Confirm & Pay ₹<span id="payBtnPrice">{{ grand_total|floatformat:2 }}</span>
+                            </span>
                             <i class="fas fa-shield-check small"></i>
-=======
-                    <div class="text-start mb-4">
-                        <div class="d-flex align-items-center gap-2 mb-3">
-                            <i class="fas fa-list-ul text-primary small"></i>
-                            <h6 class="text-uppercase small fw-black m-0 tracking-widest text-white">Itemized Recap</h6>
-                        </div>
-                        
-                        <div class="checkout-scroll-area pe-2" style="max-height: 250px; overflow-y: auto;">
-                            <div class="d-grid gap-2">
-                                {% for item in cart_items %}
-                                <div class="item-card p-3 rounded-4 bg-white bg-opacity-5 border border-white border-opacity-5 transition-all">
-                                    <div class="row align-items-center g-2">
-                                        <div class="col-8 overflow-hidden pe-2">
-                                            <p class="small mb-1 fw-black text-uppercase italic text-truncate text-white">
-                                                {{ item.service_name }}
-                                            </p>
-                                            <div class="d-flex align-items-center gap-2">
-                                                <i class="fas fa-file-pdf text-primary" style="font-size: 0.65rem;"></i>
-                                                <p class="mb-0 text-white-50 text-truncate font-bold" style="font-size: 0.65rem;">
-                                                    {{ item.document_name|default:"Document File" }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div class="col-4 text-end">
-                                            <span class="fw-black text-primary">₹{{ item.total_price }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="d-flex justify-content-between align-items-center mb-5 px-3 py-2 border-bottom border-white border-opacity-10">
-                        <span class="text-white-50 text-[10px] font-black uppercase tracking-widest">Campus Delivery</span>
-                        <span class="text-success fw-black uppercase tracking-widest" style="font-size: 11px;">
-                            <i class="fas fa-truck-loading me-1"></i> FREE
-                        </span>
-                    </div>
-
-                    <div class="text-center mb-4">
-                        <a href="{% url 'initiate_payment' %}" id="pay-btn"
-                           onclick="this.classList.add('disabled'); this.innerHTML='<i class=\'fas fa-spinner fa-spin me-2\'></i> Processing...';"
-                           class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-3 px-5 py-3 rounded-pill no-underline transition-all shadow-xl shadow-primary-500/20 hover-scale">
-                            <span class="font-black text-[11px] text-uppercase tracking-widest">Proceed to Pay ₹{{ grand_total }}</span>
-                            <i class="fas fa-credit-card small"></i>
->>>>>>> 87798d27c0daccfb5675ed1a1ab427eb83bcc2fc
                         </a>
                     </div>
 
                     <footer class="text-center mt-5">
                         <div class="d-flex flex-column align-items-center">
-                            <p class="text-primary text-[9px] fw-black text-uppercase mb-2 tracking-widest d-flex align-items-center justify-content-center gap-2">
-<<<<<<< HEAD
+                            <p
+                                class="text-primary text-[9px] fw-black text-uppercase mb-2 tracking-widest d-flex align-items-center justify-content-center gap-2">
                                 <i class="fas fa-lock"></i> 256-BIT ENCRYPTED GATEWAY
                             </p>
                             <p class="text-white-50 italic mb-0 px-4" style="font-size: 0.65rem; line-height: 1.6;">
-                                Proceeding will redirect you to <span class="text-info">Cashfree Payments</span>. 
-                                Your order is confirmed only upon successful gateway response.
-=======
-                                <i class="fas fa-shield-alt"></i> Secure Encrypted Transaction
-                            </p>
-                            <p class="text-white-50 italic mb-0 px-4" style="font-size: 0.65rem; line-height: 1.6;">
-                                Your order will be placed and the cart cleared 
+                                Your order will be placed and the cart cleared
                                 <span class="text-info fw-bold">only after</span> payment confirmation from the gateway.
->>>>>>> 87798d27c0daccfb5675ed1a1ab427eb83bcc2fc
                             </p>
                         </div>
                     </footer>
@@ -226,14 +217,10 @@
             </div>
 
             <div class="text-center mt-4">
-                <a href="{% url 'cart' %}" class="btn-back-cart no-underline transition-all d-inline-flex align-items-center gap-2">
-<<<<<<< HEAD
+                <a href="{% url 'cart' %}"
+                    class="btn-back-cart no-underline transition-all d-inline-flex align-items-center gap-2">
                     <i class="fas fa-arrow-left"></i>
                     <span class="font-black uppercase tracking-widest text-primary">Return to Cart</span>
-=======
-                    <i class="fas fa-chevron-left"></i> 
-                    <span class="font-black uppercase tracking-widest text-primary">Back to Cart</span>
->>>>>>> 87798d27c0daccfb5675ed1a1ab427eb83bcc2fc
                 </a>
             </div>
         </div>
@@ -241,11 +228,21 @@
 </div>
 
 <style>
-    .fw-black { font-weight: 900; }
-    .italic { font-style: italic; }
-<<<<<<< HEAD
-    .tracking-widest { letter-spacing: 0.18em; }
-    .bg-dark { background-color: #0f172a !important; }
+    .fw-black {
+        font-weight: 900;
+    }
+
+    .italic {
+        font-style: italic;
+    }
+
+    .tracking-widest {
+        letter-spacing: 0.18em;
+    }
+
+    .bg-dark {
+        background-color: #0f172a !important;
+    }
 
     .amount-banner {
         background: linear-gradient(135deg, rgba(37, 99, 235, 0.2) 0%, rgba(15, 23, 42, 0) 100%);
@@ -291,7 +288,7 @@
         font-size: 10px;
         opacity: 0.7;
     }
-    
+
     .btn-back-cart:hover {
         opacity: 1;
         transform: translateX(-3px);
@@ -306,33 +303,145 @@
         border-radius: 10px;
     }
 
-    .hover-scale { transition: all 0.2s ease-in-out; }
-    .hover-scale:hover { transform: scale(1.04); }
+    .hover-scale {
+        transition: all 0.2s ease-in-out;
+    }
+
+    .hover-scale:hover {
+        transform: scale(1.04);
+    }
 
     .shadow-2xl {
         box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.6);
     }
 
     @media (max-width: 768px) {
-        .amount-banner h1 { font-size: 1.8rem; }
-        .step-line { margin: 0 6px; }
-        .card-body { padding: 1.5rem !important; }
-=======
-    .tracking-widest { letter-spacing: 0.15em; }
-    .bg-dark { background-color: #0f172a !important; }
-    .amount-banner {
-        background: linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(15, 23, 42, 0) 100%);
-        padding: 1.5rem; border-radius: 1.5rem; border-left: 5px solid #2563eb;
->>>>>>> 87798d27c0daccfb5675ed1a1ab427eb83bcc2fc
+        .amount-banner h1 {
+            font-size: 1.8rem;
+        }
+
+        .step-line {
+            margin: 0 6px;
+        }
+
+        .card-body {
+            padding: 1.5rem !important;
+        }
     }
-    .step-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 12px; }
-    .step-line { height: 3px; flex-grow: 1; align-self: center; margin: 0 10px; transform: translateY(-8px); border-radius: 10px; }
-    .item-card { background-color: rgba(255, 255, 255, 0.04) !important; }
-    .item-card:hover { background-color: rgba(37, 99, 235, 0.1) !important; transform: translateX(5px); }
-    .btn-back-cart { color: #3b82f6; font-size: 10px; opacity: 0.8; }
-    .checkout-scroll-area::-webkit-scrollbar { width: 4px; }
-    .checkout-scroll-area::-webkit-scrollbar-thumb { background: #2563eb; border-radius: 10px; }
-    .hover-scale:hover { transform: scale(1.03); }
-    .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); }
+
+    .btn-toggle-coupon {
+        background: transparent;
+        border: none;
+        padding: 10px 0;
+        transition: all 0.2s;
+    }
+
+    .btn-toggle-coupon:hover {
+        opacity: 0.8;
+    }
+
+    .coupon-input:focus {
+        background: rgba(37, 99, 235, 0.15) !important;
+        border-color: #2563eb !important;
+        box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25) !important;
+    }
 </style>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function applyCoupon() {
+        const couponCode = document.getElementById('couponCodeInput').value.trim();
+        const messageDiv = document.getElementById('couponMessage');
+        const applyBtn = document.getElementById('applyBtn');
+
+        if (!couponCode) {
+            messageDiv.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>Please enter a coupon code</span>';
+            return;
+        }
+
+        applyBtn.disabled = true;
+        applyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Applying...';
+
+        fetch('{% url "apply_coupon" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: `coupon_code=${encodeURIComponent(couponCode)}`
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    messageDiv.innerHTML = `<span class="text-success fw-bold"><i class="fas fa-check-circle me-1"></i>${data.message}</span>`;
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 800);
+                } else {
+                    messageDiv.innerHTML = `<span class="text-danger"><i class="fas fa-times-circle me-1"></i>${data.message}</span>`;
+                    applyBtn.disabled = false;
+                    applyBtn.innerHTML = '<span class="text-[10px] font-black tracking-widest">APPLY</span>';
+                }
+            })
+            .catch(error => {
+                console.error('Coupon apply error:', error);
+                messageDiv.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i>Error: ' + error.message + '</span>';
+                applyBtn.disabled = false;
+                applyBtn.innerHTML = '<span class="text-[10px] font-black tracking-widest">APPLY</span>';
+            });
+    }
+
+    function removeCoupon() {
+        if (!confirm('Remove this coupon?')) return;
+
+        fetch('{% url "remove_coupon" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error removing coupon:', error);
+            });
+    }
+
+    // Allow Enter key to apply coupon
+    document.addEventListener('DOMContentLoaded', function () {
+        const couponInput = document.getElementById('couponCodeInput');
+        if (couponInput) {
+            couponInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    applyCoupon();
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

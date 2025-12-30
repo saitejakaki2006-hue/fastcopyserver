@@ -16,7 +16,6 @@ def cart_count(request):
     return {
         'cart_item_count': count
     }
-<<<<<<< HEAD
 
 from django.utils import timezone
 from .models import PublicHoliday
@@ -52,5 +51,3 @@ def site_context(request):
         'marquee_date_early': date_before_8pm,
         'marquee_date_late': date_after_8pm,
     }
-=======
->>>>>>> 87798d27c0daccfb5675ed1a1ab427eb83bcc2fc

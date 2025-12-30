@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.utils.http import urlencode
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
-from .models import Service, Order, UserProfile, CartItem, PricingConfig, Location, PublicHoliday
+from .models import Service, Order, UserProfile, CartItem, PricingConfig, Location, PublicHoliday, Coupon
 
 # --- 🛠️ 1. CUSTOM ADMIN SITE SETUP ---
 class FastCopyAdminSite(admin.AdminSite):
@@ -52,11 +52,7 @@ class ServiceAdmin(admin.ModelAdmin):
 class UserProfileAdmin(admin.ModelAdmin):
     list_display = ('user_id_link', 'full_name_display', 'mobile', 'email_display', 'dealer_status', 'price_display', 'user_type', 'date_joined')
     search_fields = ('fc_user_id', 'user__username', 'mobile', 'user__email', 'user__first_name')
-<<<<<<< HEAD
     list_filter = ('is_dealer', 'user__is_staff', ('user__date_joined', admin.DateFieldListFilter))
-=======
-    list_filter = ('user__is_staff', ('user__date_joined', admin.DateFieldListFilter))
->>>>>>> 87798d27c0daccfb5675ed1a1ab427eb83bcc2fc
     readonly_fields = ('display_fc_id', 'user_type', 'date_joined', 'action_buttons')
     ordering = ('-id',)
     filter_horizontal = ('dealer_locations',)
@@ -64,13 +60,10 @@ class UserProfileAdmin(admin.ModelAdmin):
     fieldsets = (
         ('ID & Security Actions', {'fields': ('display_fc_id', 'user_type', 'action_buttons')}),
         ('Personal Information', {'fields': ('mobile', 'address')}),
-<<<<<<< HEAD
         ('Dealer Settings', {
             'fields': ('is_dealer', 'price_per_page', 'dealer_locations'),
-            'description': 'Enable dealer status, set custom pricing, and assign locations (comma-separated).'
+            'description': 'Enable dealer status, set custom pricing, and assign locations.'
         }),
-=======
->>>>>>> 87798d27c0daccfb5675ed1a1ab427eb83bcc2fc
         ('System Metadata', {'fields': ('date_joined',)}),
     )
 
@@ -104,7 +97,6 @@ class UserProfileAdmin(admin.ModelAdmin):
 # --- 🚀 6. ORDER ADMIN ---
 @admin.register(Order, site=admin_site)
 class OrderAdmin(admin.ModelAdmin):
-    # --- TEMPLATE OVERRIDE ---
     change_form_template = 'admin/core/order/change_form.html'
 
     list_display = (
@@ -117,22 +109,16 @@ class OrderAdmin(admin.ModelAdmin):
     search_fields = ('order_id', 'transaction_id', 'user__first_name', 'user__username')
     
     readonly_fields = (
-    'order_id', 
-    'created_at', 
-    'user_name', 
-    'user_email', 
-    'mobile_number', 
-    'document',  # Ensure this is here
-    'image_upload', 
-    'display_full_file_preview', 
-    'printing_type_display'
-)
+        'order_id', 'created_at', 'user_name', 'user_email', 
+        'mobile_number', 'document', 'image_upload', 
+        'display_full_file_preview', 'printing_type_display'
+    )
     
     fieldsets = (
         ('User Information', {'fields': ('user', 'location', 'user_name', 'mobile_number', 'user_email')}),
         ('Printing Specs', {'fields': ('service_name', 'print_mode', 'side_type', 'copies', 'custom_color_pages')}),
         ('File Management', {'fields': ('document', 'image_upload', 'display_full_file_preview')}),
-        ('Financials', {'fields': ('total_price', 'transaction_id', 'payment_status')}),
+        ('Financials', {'fields': ('original_price', 'coupon_code', 'discount_amount', 'total_price', 'transaction_id', 'payment_status')}),
         ('Workflow Metadata', {'fields': ('status', 'order_id', 'created_at')}),
     )
 
@@ -187,29 +173,26 @@ class OrderAdmin(admin.ModelAdmin):
         except: pass
         return res
 
-<<<<<<< HEAD
-
-# --- 💰 6. PRICING CONFIGURATION ADMIN ---
+# --- 💰 7. PRICING CONFIGURATION ADMIN ---
 @admin.register(PricingConfig, site=admin_site)
 class PricingConfigAdmin(admin.ModelAdmin):
     fieldsets = (
-        ('📄 Basic Printing Prices (per page)', {
+        ('📄 Basic Printing Prices - Single Side (per page)', {
             'fields': (('admin_price_per_page', 'dealer_price_per_page'),),
-            'description': 'Set the base price per page for printing services'
+        }),
+        ('📄 Basic Printing Prices - Double Side (per page)', {
+            'fields': (('admin_price_per_page_double', 'dealer_price_per_page_double'),),
         }),
         ('🌀 Spiral Binding Prices', {
             'fields': (
-                'spiral_binding_price_admin', # Legacy
                 'spiral_tier1_limit', ('spiral_tier1_price_admin', 'spiral_tier1_price_dealer'),
                 'spiral_tier2_limit', ('spiral_tier2_price_admin', 'spiral_tier2_price_dealer'),
                 'spiral_tier3_limit', ('spiral_tier3_price_admin', 'spiral_tier3_price_dealer'),
                 ('spiral_extra_price_admin', 'spiral_extra_price_dealer'),
             ),
-            'description': 'Tiered pricing for spiral binding. Limits define the max pages for that tier.'
         }),
         ('📚 Soft Binding Prices', {
             'fields': (('soft_binding_price_admin', 'soft_binding_price_dealer'),),
-            'description': 'Fixed price for soft binding service'
         }),
         ('🎨 Custom Print Layout Prices', {
             'fields': (
@@ -217,40 +200,119 @@ class PricingConfigAdmin(admin.ModelAdmin):
                 ('custom_1_8_price_admin', 'custom_1_8_price_dealer'),
                 ('custom_1_9_price_admin', 'custom_1_9_price_dealer'),
             ),
-            'description': 'Per-sheet prices for custom layouts'
         }),
         ('🚚 Delivery Charges (Per Order)', {
             'fields': (('delivery_price_admin', 'delivery_price_dealer'),),
-            'description': 'Flat delivery charge applied to the entire order'
         }),
-        ('🌈 Color Printing Additional Charge', {
+        ('🌈 Color Printing Additional Charge - Single Side', {
             'fields': (('color_price_addition_admin', 'color_price_addition_dealer'),),
-            'description': 'Additional charge per color page on top of base printing price'
         }),
-        ('📅 Timestamps', {
-            'fields': (('created_at', 'updated_at'),),
-            'classes': ('collapse',)
+        ('🌈 Color Printing Additional Charge - Double Side', {
+            'fields': (('color_price_addition_admin_double', 'color_price_addition_dealer_double'),),
         }),
     )
     
     readonly_fields = ('created_at', 'updated_at')
-    
     list_display = ('__str__', 'admin_price_per_page', 'dealer_price_per_page', 'updated_at')
     
     def has_add_permission(self, request):
-        # Only allow one pricing config instance
         return not PricingConfig.objects.exists()
-    
     def has_delete_permission(self, request, obj=None):
-        # Prevent deletion of pricing configuration
         return False
 
+# --- 🎟️ 7. COUPON ADMIN ---
+@admin.register(Coupon, site=admin_site)
+class CouponAdmin(admin.ModelAdmin):
+    list_display = (
+        'code_display', 'discount_badge', 'validity_status', 
+        'usage_display', 'min_order_display',
+        'valid_from_display', 'valid_until_display'
+    )
+    
+    list_filter = ('is_active', ('valid_from', admin.DateFieldListFilter), ('valid_until', admin.DateFieldListFilter))
+    search_fields = ('code', 'description')
+    
+    readonly_fields = ('current_usage_count', 'created_at', 'updated_at')
+    
+    fieldsets = (
+        ('Coupon Details', {
+            'fields': ('code', 'discount_percentage', 'description')
+        }),
+        ('Validity Period', {
+            'fields': ('valid_from', 'valid_until', 'is_active')
+        }),
+        ('Usage Restrictions', {
+            'fields': ('minimum_order_amount', 'max_usage_count', 'current_usage_count')
+        }),
+        ('Metadata', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+    
+    def code_display(self, obj):
+        return format_html(
+            '<span style="font-family: monospace; font-weight: bold; color: #2563eb; font-size: 13px;">{}</span>',
+            obj.code
+        )
+    code_display.short_description = 'Coupon Code'
+    
+    def discount_badge(self, obj):
+        discount_percent = f'{float(obj.discount_percentage):.2f}'
+        # Remove trailing zeros and decimal point if whole number
+        if '.' in discount_percent:
+            discount_percent = discount_percent.rstrip('0').rstrip('.')
+        return format_html(
+            '<span style="background: #15803d; color: white; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: bold;">{}% OFF</span>',
+            discount_percent
+        )
+    discount_badge.short_description = 'Discount'
+    
+    def validity_status(self, obj):
+        from django.utils import timezone
+        now = timezone.now()
+        
+        if not obj.is_active:
+            return format_html('<span style="color: #64748b;">⏸️ Inactive</span>')
+        elif now < obj.valid_from:
+            return format_html('<span style="color: #ca8a04;">⏳ Not Yet Active</span>')
+        elif now > obj.valid_until:
+            return format_html('<span style="color: #be123c;">⏰ Expired</span>')
+        else:
+            return format_html('<span style="color: #15803d; font-weight: bold;">✅ Active</span>')
+    validity_status.short_description = 'Status'
+    
+    def usage_display(self, obj):
+        if obj.max_usage_count == 0:
+            return format_html('<span style="color: #2563eb; font-weight: bold;">{} / ∞</span>', obj.current_usage_count)
+        
+        percent_used = (obj.current_usage_count / obj.max_usage_count) * 100 if obj.max_usage_count > 0 else 0
+        color = '#15803d' if percent_used < 50 else ('#ca8a04' if percent_used < 90 else '#be123c')
+        
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{} / {}</span>',
+            color, obj.current_usage_count, obj.max_usage_count
+        )
+    usage_display.short_description = 'Usage'
+    
+    def min_order_display(self, obj):
+        if obj.minimum_order_amount == 0:
+            return format_html('<span style="color: #64748b;">No minimum</span>')
+        formatted_amount = f'{float(obj.minimum_order_amount):.2f}'
+        return format_html('<span style="font-weight: bold; color: #2563eb;">₹{}</span>', formatted_amount)
+    min_order_display.short_description = 'Min Order'
+    
+    def valid_from_display(self, obj):
+        return obj.valid_from.strftime('%d %b %Y, %I:%M %p')
+    valid_from_display.short_description = 'Valid From'
+    
+    def valid_until_display(self, obj):
+        return obj.valid_until.strftime('%d %b %Y, %I:%M %p')
+    valid_until_display.short_description = 'Valid Until'
 
-# --- 🛠️ 7. REGISTER AUTH MODELS ---
+
+# --- 🛠️ 8. REGISTER AUTH MODELS ---
 admin_site.register(PublicHoliday)
 admin_site.register(Location)
-=======
-# --- 🛠️ 7. REGISTER AUTH MODELS ---
->>>>>>> 87798d27c0daccfb5675ed1a1ab427eb83bcc2fc
 admin_site.register(User, UserAdmin)
 admin_site.register(Group, GroupAdmin)
