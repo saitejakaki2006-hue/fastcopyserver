@@ -843,18 +843,17 @@ def payment_callback(request):
         # 1. Finalize the order in the database
         process_successful_order(request.user, items_involved, txn_id)
         
-        # 2. Send email notifications (non-blocking - don't fail redirect if emails fail)
-        successful_orders = Order.objects.filter(transaction_id=txn_id, payment_status='Success')
+        # 2. Email notifications - TEMPORARILY DISABLED due to SMTP timeout
+        # TODO: Implement async email sending (Celery/background task)
+        # successful_orders = Order.objects.filter(transaction_id=txn_id, payment_status='Success')
+        # for order in successful_orders:
+        #     try:
+        #         send_all_order_notifications(order)
+        #         print(f"✅ Emails sent successfully for order {order.order_id}")
+        #     except Exception as e:
+        #         print(f"⚠️ Email notification error for order {order.order_id}: {str(e)}")
         
-        for order in successful_orders:
-            try:
-                # Try to send emails but don't block if it fails/times out
-                send_all_order_notifications(order)
-                print(f"✅ Emails sent successfully for order {order.order_id}")
-            except Exception as e:
-                # Log error but continue - emails are secondary to order success
-                print(f"⚠️ Email notification error for order {order.order_id}: {str(e)}")
-                # Order is still successful even if email fails!
+        print(f"✅ Payment successful! Order processed (emails disabled for now)")
         
         # 3. Session and Cart Cleanup
         if is_direct: 
