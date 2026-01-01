@@ -105,7 +105,7 @@ class Order(models.Model):
     custom_color_pages = models.CharField(max_length=255, null=True, blank=True)
     location = models.CharField(max_length=100, null=True, blank=True)
 
-    document = models.FileField(upload_to='orders/pdfs/', null=True, blank=True)
+    document = models.FileField(upload_to='orders/pdfs/', max_length=500, null=True, blank=True)
     image_upload = models.ImageField(upload_to='orders/images/', null=True, blank=True)
 
     # Pricing fields
