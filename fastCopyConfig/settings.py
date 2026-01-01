@@ -12,6 +12,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-key-change-in-production')
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+CSRF_TRUSTED_ORIGINS = [
+    'https://fastcopy.pagexplore.com',
+    'http://fastcopy.pagexplore.com',
+    'https://64.227.174.109',
+    'http://64.227.174.109'
+]
 
 # --- 💳 CASHFREE PAYMENT GATEWAY CONFIG (Production Environment) ---
 CASHFREE_APP_ID = os.getenv('CASHFREE_APP_ID')
