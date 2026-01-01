@@ -843,20 +843,18 @@ def payment_callback(request):
         # 1. Finalize the order in the database
         process_successful_order(request.user, items_involved, txn_id)
         
-        # 2. Send email notifications to Customer, Admin, and Dealers
+        # 2. Send email notifications (non-blocking - don't fail redirect if emails fail)
         successful_orders = Order.objects.filter(transaction_id=txn_id, payment_status='Success')
         
         for order in successful_orders:
             try:
-                # This function sends emails to:
-                # 1. Customer - Order confirmation 
-                # 2. Admin - New order alert
-                # 3. Dealers - Order alert for their location
+                # Try to send emails but don't block if it fails/times out
                 send_all_order_notifications(order)
                 print(f"✅ Emails sent successfully for order {order.order_id}")
             except Exception as e:
-                # Log error but don't fail the order - emails are non-critical
+                # Log error but continue - emails are secondary to order success
                 print(f"⚠️ Email notification error for order {order.order_id}: {str(e)}")
+                # Order is still successful even if email fails!
         
         # 3. Session and Cart Cleanup
         if is_direct: 
