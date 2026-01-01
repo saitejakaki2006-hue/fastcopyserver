@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
 
 {% block content %}
@@ -6,6 +6,7 @@
     <div class="row justify-content-center">
         <div class="col-12 col-md-10 col-lg-7 col-xl-6">
 
+            <!-- Step indicator -->
             <div class="d-flex justify-content-between mb-5 px-4 position-relative align-items-center"
                 style="z-index: 1;">
                 <div class="text-center">
@@ -35,23 +36,28 @@
                 </div>
             </div>
 
+            <!-- Main card -->
             <div class="card border-0 bg-dark text-white rounded-[2rem] shadow-2xl overflow-hidden border-top border-primary border-5"
                 data-aos="zoom-in">
                 <div class="card-body p-4 p-md-5">
 
+                    <!-- Header -->
                     <header class="text-center mb-5">
-                        <h2 class="text-uppercase fw-black italic mb-1 tracking-tighter">Final <span
-                                class="text-primary">Summary</span></h2>
-                        <p class="text-white-50 text-[10px] font-bold uppercase tracking-widest">Please verify your
-                            order details</p>
+                        <h2 class="text-uppercase fw-black italic mb-1 tracking-tighter">
+                            Final <span class="text-primary">Summary</span>
+                        </h2>
+                        <p class="text-white-50 text-[10px] font-bold uppercase tracking-widest">
+                            Please verify your order details
+                        </p>
                     </header>
 
+                    <!-- Amount banner -->
                     <div class="amount-banner mb-4">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <span
-                                    class="text-uppercase text-[10px] fw-black text-primary tracking-widest d-block">Grand
-                                    Total</span>
+                                <span class="text-uppercase text-[10px] fw-black text-primary tracking-widest d-block">
+                                    Grand Total
+                                </span>
                                 <small class="text-white-50 uppercase text-[9px]">
                                     {{ items_count }} Item{{ items_count|pluralize }} • Total Units: {{ total_pages }}
                                     Pgs
@@ -65,6 +71,7 @@
                         </div>
                     </div>
 
+                    <!-- Estimated arrival -->
                     <div class="alert mt-3 d-flex align-items-center border-0 shadow-sm rounded-4 p-3"
                         style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); color: #b45309;">
                         <i class="fas fa-truck-clock fs-4 me-3"></i>
@@ -79,10 +86,13 @@
                         </div>
                     </div>
 
+                    <!-- Items in order -->
                     <div class="text-start mt-5 mb-4">
                         <div class="d-flex align-items-center gap-2 mb-3">
                             <i class="fas fa-receipt text-primary small"></i>
-                            <h6 class="text-uppercase small fw-black m-0 tracking-widest text-white">Items in Order</h6>
+                            <h6 class="text-uppercase small fw-black m-0 tracking-widest text-white">
+                                Items in Order
+                            </h6>
                         </div>
 
                         <div class="checkout-scroll-area pe-2" style="max-height: 220px; overflow-y: auto;">
@@ -105,8 +115,9 @@
                                             </div>
                                         </div>
                                         <div class="col-4 text-end">
-                                            <span class="fw-black text-primary" style="font-size: 0.85rem;">₹{{
-                                                item.total_price }}</span>
+                                            <span class="fw-black text-primary" style="font-size: 0.85rem;">
+                                                ₹{{ item.total_price }}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -115,21 +126,28 @@
                         </div>
                     </div>
 
+                    <!-- Delivery fee -->
                     <div
                         class="d-flex justify-content-between align-items-center mt-2 mb-3 px-3 py-2 border-bottom border-white border-opacity-10">
-                        <span class="text-white-50 text-[10px] font-black uppercase tracking-widest">Campus Delivery
-                            Fee</span>
+                        <span class="text-white-50 text-[10px] font-black uppercase tracking-widest">
+                            Campus Delivery Fee
+                        </span>
                         <span class="text-success fw-black uppercase tracking-widest" style="font-size: 11px;">
-                            {% if delivery_charge > 0 %}₹{{ delivery_charge }}{% else %}FREE{% endif %}
+                            {% if delivery_charge > 0 %}
+                            ₹{{ delivery_charge }}
+                            {% else %}
+                            FREE
+                            {% endif %}
                         </span>
                     </div>
 
-                    <!-- Coupon Section -->
+                    <!-- Coupon section -->
                     <div class="coupon-section mb-4 px-3">
                         {% if not coupon_valid %}
                         <div class="coupon-input-container">
                             <button
                                 class="btn-toggle-coupon w-100 text-start d-flex justify-content-between align-items-center"
+                                type="button"
                                 onclick="document.getElementById('couponInputArea').classList.toggle('d-none')">
                                 <span class="text-primary text-[10px] font-black uppercase tracking-widest">
                                     <i class="fas fa-ticket me-2"></i>Have a Coupon Code?
@@ -142,7 +160,8 @@
                                     <input type="text" id="couponCodeInput"
                                         class="form-control coupon-input text-uppercase" placeholder="Enter coupon code"
                                         style="background: rgba(37, 99, 235, 0.1); border: 1px solid rgba(37, 99, 235, 0.3); color: white; font-weight: bold; letter-spacing: 1px;">
-                                    <button class="btn btn-primary px-4" onclick="applyCoupon()" id="applyBtn">
+                                    <button class="btn btn-primary px-4" type="button" onclick="applyCoupon()"
+                                        id="applyBtn">
                                         <span class="text-[10px] font-black tracking-widest">APPLY</span>
                                     </button>
                                 </div>
@@ -161,7 +180,7 @@
                                         {{ coupon_code }}
                                     </div>
                                 </div>
-                                <button class="btn btn-sm" onclick="removeCoupon()"
+                                <button class="btn btn-sm" type="button" onclick="removeCoupon()"
                                     style="background: rgba(255,255,255,0.2); color: white; font-size: 10px; padding: 4px 12px;">
                                     <i class="fas fa-times me-1"></i>Remove
                                 </button>
@@ -170,7 +189,7 @@
                         {% endif %}
                     </div>
 
-                    <!-- Price Breakdown -->
+                    <!-- Price breakdown -->
                     <div class="price-breakdown px-3 mb-4">
                         {% if coupon_valid and discount_amount > 0 %}
                         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -190,17 +209,19 @@
                         {% endif %}
                     </div>
 
+                    <!-- Confirm & Pay -->
                     <div class="text-center mb-4">
                         <a href="{% url 'initiate_payment' %}" id="pay-btn"
                             onclick="this.classList.add('disabled'); this.innerHTML='<i class=\'fas fa-circle-notch fa-spin me-2\'></i> SECURING SESSION...';"
                             class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-3 px-5 py-3 rounded-pill no-underline transition-all shadow-xl hover-scale">
                             <span class="font-black text-[11px] text-uppercase tracking-widest">
-                                Confirm & Pay ₹<span id="payBtnPrice">{{ grand_total|floatformat:2 }}</span>
+                                Confirm &amp; Pay ₹<span id="payBtnPrice">{{ grand_total|floatformat:2 }}</span>
                             </span>
                             <i class="fas fa-shield-check small"></i>
                         </a>
                     </div>
 
+                    <!-- Footer note -->
                     <footer class="text-center mt-5">
                         <div class="d-flex flex-column align-items-center">
                             <p
@@ -209,13 +230,15 @@
                             </p>
                             <p class="text-white-50 italic mb-0 px-4" style="font-size: 0.65rem; line-height: 1.6;">
                                 Your order will be placed and the cart cleared
-                                <span class="text-info fw-bold">only after</span> payment confirmation from the gateway.
+                                <span class="text-info fw-bold">only after</span>
+                                payment confirmation from the gateway.
                             </p>
                         </div>
                     </footer>
                 </div>
             </div>
 
+            <!-- Back to cart -->
             <div class="text-center mt-4">
                 <a href="{% url 'cart' %}"
                     class="btn-back-cart no-underline transition-all d-inline-flex align-items-center gap-2">
@@ -350,11 +373,11 @@
 <script>
     function getCookie(name) {
         let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
             for (let i = 0; i < cookies.length; i++) {
                 const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                if (cookie.substring(0, name.length + 1) === (name + "=")) {
                     cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                     break;
                 }
@@ -364,23 +387,25 @@
     }
 
     function applyCoupon() {
-        const couponCode = document.getElementById('couponCodeInput').value.trim();
-        const messageDiv = document.getElementById('couponMessage');
-        const applyBtn = document.getElementById('applyBtn');
+        const couponCode = document.getElementById("couponCodeInput").value.trim();
+        const messageDiv = document.getElementById("couponMessage");
+        const applyBtn = document.getElementById("applyBtn");
 
         if (!couponCode) {
-            messageDiv.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>Please enter a coupon code</span>';
+            messageDiv.innerHTML =
+                '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>Please enter a coupon code</span>';
             return;
         }
 
         applyBtn.disabled = true;
-        applyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Applying...';
+        applyBtn.innerHTML =
+            '<span class="spinner-border spinner-border-sm me-2"></span>Applying...';
 
-        fetch('{% url "apply_coupon" %}', {
-            method: 'POST',
+        fetch("{% url 'apply_coupon' %}", {
+            method: "POST",
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': getCookie('csrftoken')
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-CSRFToken": getCookie("csrftoken")
             },
             body: `coupon_code=${encodeURIComponent(couponCode)}`
         })
@@ -392,32 +417,38 @@
             })
             .then(data => {
                 if (data.success) {
-                    messageDiv.innerHTML = `<span class="text-success fw-bold"><i class="fas fa-check-circle me-1"></i>${data.message}</span>`;
+                    messageDiv.innerHTML =
+                        `<span class="text-success fw-bold"><i class="fas fa-check-circle me-1"></i>${data.message}</span>`;
                     setTimeout(() => {
                         window.location.reload();
                     }, 800);
                 } else {
-                    messageDiv.innerHTML = `<span class="text-danger"><i class="fas fa-times-circle me-1"></i>${data.message}</span>`;
+                    messageDiv.innerHTML =
+                        `<span class="text-danger"><i class="fas fa-times-circle me-1"></i>${data.message}</span>`;
                     applyBtn.disabled = false;
-                    applyBtn.innerHTML = '<span class="text-[10px] font-black tracking-widest">APPLY</span>';
+                    applyBtn.innerHTML =
+                        '<span class="text-[10px] font-black tracking-widest">APPLY</span>';
                 }
             })
             .catch(error => {
-                console.error('Coupon apply error:', error);
-                messageDiv.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i>Error: ' + error.message + '</span>';
+                console.error("Coupon apply error:", error);
+                messageDiv.innerHTML =
+                    '<span class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i>Error: ' +
+                    error.message + "</span>";
                 applyBtn.disabled = false;
-                applyBtn.innerHTML = '<span class="text-[10px] font-black tracking-widest">APPLY</span>';
+                applyBtn.innerHTML =
+                    '<span class="text-[10px] font-black tracking-widest">APPLY</span>';
             });
     }
 
     function removeCoupon() {
-        if (!confirm('Remove this coupon?')) return;
+        if (!confirm("Remove this coupon?")) return;
 
-        fetch('{% url "remove_coupon" %}', {
-            method: 'POST',
+        fetch("{% url 'remove_coupon' %}", {
+            method: "POST",
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': getCookie('csrftoken')
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-CSRFToken": getCookie("csrftoken")
             }
         })
             .then(response => response.json())
@@ -427,16 +458,16 @@
                 }
             })
             .catch(error => {
-                console.error('Error removing coupon:', error);
+                console.error("Error removing coupon:", error);
             });
     }
 
     // Allow Enter key to apply coupon
-    document.addEventListener('DOMContentLoaded', function () {
-        const couponInput = document.getElementById('couponCodeInput');
+    document.addEventListener("DOMContentLoaded", function () {
+        const couponInput = document.getElementById("couponCodeInput");
         if (couponInput) {
-            couponInput.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') {
+            couponInput.addEventListener("keypress", function (e) {
+                if (e.key === "Enter") {
                     e.preventDefault();
                     applyCoupon();
                 }
@@ -444,4 +475,4 @@
         }
     });
 </script>
-{% endblock %}
+{% endblock content %}

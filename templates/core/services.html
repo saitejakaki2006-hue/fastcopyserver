@@ -327,6 +327,8 @@
     const CUSTOM_1_4 = {{ price_vars.custom_1_4 }};
     const CUSTOM_1_8 = {{ price_vars.custom_1_8 }};
     const CUSTOM_1_9 = {{ price_vars.custom_1_9 }};
+    const CUSTOM_1_8_DOUBLE = {{ price_vars.custom_1_8_double }};
+    const CUSTOM_1_9_DOUBLE = {{ price_vars.custom_1_9_double }};
     {% else %}
     // Fallback to default prices if not loaded
     const PRICE_PER_PAGE_BW = 1.5;
@@ -343,15 +345,14 @@
     const CUSTOM_1_9 = 4.0;
     {% endif %}
 
-    // Calculated totals for price calculations (B&W + Color)
-    const PRICE_PER_PAGE_COLOR_TOTAL = PRICE_PER_PAGE_BW + PRICE_PER_PAGE_COLOR;
-    const PRICE_PER_PAGE_COLOR_DOUBLE_TOTAL = PRICE_PER_PAGE_BW_DOUBLE + PRICE_PER_PAGE_COLOR_DOUBLE;
+    // NOTE: Color prices from panel already include correct full price per page
+    // No need to add B&W price to color price
 
     const priceCards = {
         "Printing": `<div class="col-6 text-muted">B&W: ₹${PRICE_PER_PAGE_BW}/p</div><div class="col-6 text-muted">BW(D): ₹${PRICE_PER_PAGE_BW_DOUBLE}/p</div><div class="col-6 text-primary">Color: ₹${PRICE_PER_PAGE_COLOR}/p</div><div class="col-6 text-primary">Color(D): ₹${PRICE_PER_PAGE_COLOR_DOUBLE}/p</div>`,
         "Spiral Binding": `<div class="col-6 text-muted">1-40p: ₹${SPIRAL_BINDING}</div><div class="col-6 text-muted">41-60p: ₹${SPIRAL_TIER2}</div><div class="col-6 text-muted">61-90p: ₹${SPIRAL_TIER3}</div><div class="col-6 text-info">90+: +₹${SPIRAL_EXTRA}/20p</div>`,
         "Soft Binding": `<div class="col-12 text-info text-center">Flat Binding: ₹${SOFT_BINDING}</div>`,
-        "Custom Printing": `<div class="col-6 text-muted">1/4: ₹${CUSTOM_1_4}/s</div><div class="col-6 text-muted">1/8: ₹${CUSTOM_1_8}/s</div><div class="col-6 text-muted">1/9: ₹${CUSTOM_1_9}/s</div>`,
+        "Custom Printing": `<div class="col-6 text-muted">1/4: ₹${CUSTOM_1_4}/s</div><div class="col-6 text-muted">1/8: ₹${CUSTOM_1_8}/s</div><div class="col-6 text-muted">1/8(D): ₹${CUSTOM_1_8_DOUBLE}/s</div><div class="col-6 text-muted">1/9: ₹${CUSTOM_1_9}/s</div><div class="col-6 text-muted">1/9(D): ₹${CUSTOM_1_9_DOUBLE}/s</div>`,
     };
 
     // Debug: Log pricing to console
@@ -496,8 +497,12 @@
         if (currentService !== "Custom Printing" && $('#print_type').val() === 'custom_split') {
             $('#custom-color-field').removeClass('d-none');
             $('#side_type').val('single');
+            $('#side-type-container').addClass('d-none');
         } else {
             $('#custom-color-field').addClass('d-none');
+            if (currentService !== "Custom Printing") {
+                $('#side-type-container').removeClass('d-none');
+            }
         }
     }
 
@@ -577,9 +582,21 @@
             let divisor = 4;
             if (L === "1/8") divisor = 8;
             if (L === "1/9") divisor = 9;
-            let sheets = Math.ceil(T / divisor);
+            let sides = Math.ceil(T / divisor);
+
             // Use dynamic custom print pricing
-            printingCostPerSet = (L === "1/4") ? (sheets * CUSTOM_1_4) : (L === "1/8" ? sheets * CUSTOM_1_8 : sheets * CUSTOM_1_9);
+            if (L === "1/4") {
+                printingCostPerSet = sides * CUSTOM_1_4;
+            } else {
+                if (S === 'double') {
+                    let sheets = Math.ceil(sides / 2);
+                    let rate = (L === "1/8") ? CUSTOM_1_8_DOUBLE : CUSTOM_1_9_DOUBLE;
+                    printingCostPerSet = sheets * rate;
+                } else {
+                    let rate = (L === "1/8") ? CUSTOM_1_8 : CUSTOM_1_9;
+                    printingCostPerSet = sides * rate;
+                }
+            }
             bwPart = printingCostPerSet;
         } else {
             if (P === 'custom_split') {
@@ -615,14 +632,17 @@
                         return;
                     }
 
-                    colorPart = uniquePages.size * PRICE_PER_PAGE_COLOR_TOTAL;
+                    // Use only color price from configuration (not B&W + color)
+                    colorPart = uniquePages.size * PRICE_PER_PAGE_COLOR;
                     bwPart = (T - uniquePages.size) * PRICE_PER_PAGE_BW;
                     printingCostPerSet = colorPart + bwPart;
                 }
             } else if (P === 'bw') {
                 printingCostPerSet = (S === 'single') ? (T * PRICE_PER_PAGE_BW) : (Math.ceil(T / 2) * PRICE_PER_PAGE_BW_DOUBLE); bwPart = printingCostPerSet;
             } else if (P === 'color') {
-                printingCostPerSet = (S === 'single') ? (T * PRICE_PER_PAGE_COLOR_TOTAL) : (T * PRICE_PER_PAGE_COLOR_DOUBLE_TOTAL); colorPart = printingCostPerSet;
+                // Use only color price from configuration (not B&W + color)
+                printingCostPerSet = (S === 'single') ? (T * PRICE_PER_PAGE_COLOR) : (Math.ceil(T / 2) * PRICE_PER_PAGE_COLOR_DOUBLE);
+                colorPart = printingCostPerSet;
             }
         }
         $('#dynamic-bw-cost').text('₹' + (bwPart * copies).toFixed(2));

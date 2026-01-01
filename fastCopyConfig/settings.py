@@ -1,19 +1,23 @@
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # 1. BASE DIRECTORY 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 2. SECURITY SETTINGS
-SECRET_KEY = 'django-insecure-6zu4gfg3+vl-_*n8alvnmq#!kt-6+o9&r-w+$@0hzg76_50o9!'
-DEBUG = True
-ALLOWED_HOSTS = []
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-key-change-in-production')
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
-# --- 💳 CASHFREE PAYMENT GATEWAY CONFIG (Test Environment) ---
-CASHFREE_APP_ID = "TEST1093498216f1366473dc23b3944128943901"
-CASHFREE_SECRET_KEY = "cfsk_ma_test_0b9ab70120232dc4e71a533ea085249e_5d421d69"
-CASHFREE_API_VERSION = "2023-08-01"
-CASHFREE_API_URL = "https://sandbox.cashfree.com/pg"
+# --- 💳 CASHFREE PAYMENT GATEWAY CONFIG (Production Environment) ---
+CASHFREE_APP_ID = os.getenv('CASHFREE_APP_ID')
+CASHFREE_SECRET_KEY = os.getenv('CASHFREE_SECRET_KEY')
+CASHFREE_API_VERSION = os.getenv('CASHFREE_API_VERSION', '2023-08-01')
+CASHFREE_API_URL = os.getenv('CASHFREE_API_URL', 'https://api.cashfree.com/pg')
 
 # 3. APPLICATION DEFINITION
 INSTALLED_APPS = [
@@ -101,3 +105,19 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
+
+# 11. EMAIL CONFIGURATION (Gmail SMTP)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'fastcopyteam@gmail.com')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = f'FastCopy Team <{EMAIL_HOST_USER}>'
+
+# 12. ADMIN & SUPPORT CONFIGURATION
+ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'fastcopyteam@gmail.com')
+SUPPORT_EMAIL = os.getenv('SUPPORT_EMAIL', 'fastcopy003@gmail.com')
+SUPPORT_PHONE = os.getenv('SUPPORT_PHONE', '+91 8500290959')
+COMPANY_NAME = 'FastCopy'
+COMPANY_WEBSITE = os.getenv('COMPANY_WEBSITE', 'http://localhost:8000')

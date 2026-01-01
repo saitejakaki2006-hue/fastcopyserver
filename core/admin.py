@@ -1,11 +1,12 @@
 from django.contrib import admin
+from django.db import models
 from django.db.models import Sum, Count
 from django.utils.html import format_html, mark_safe
 from django.urls import reverse
 from django.utils.http import urlencode
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
-from .models import Service, Order, UserProfile, CartItem, PricingConfig, Location, PublicHoliday, Coupon
+from .models import Service, Order, UserProfile, CartItem, PricingConfig, Location, PublicHoliday, Coupon, PopupOffer
 
 # --- 🛠️ 1. CUSTOM ADMIN SITE SETUP ---
 class FastCopyAdminSite(admin.AdminSite):
@@ -101,8 +102,8 @@ class OrderAdmin(admin.ModelAdmin):
 
     list_display = (
         'order_id_link', 'user_name', 'mobile_number', 'service_name', 
-        'display_file_thumbnail', 'printing_type_display', 'price_display', 
-        'payment_status_badge', 'status_badge', 'created_at'
+        'display_file_thumbnail', 'printing_type_display', 'coupon_display',
+        'price_display', 'payment_status_badge', 'status_badge', 'created_at'
     )
     
     list_filter = ('status', 'payment_status', ServiceTypeFilter, 'location', ('created_at', admin.DateFieldListFilter))
@@ -154,6 +155,23 @@ class OrderAdmin(admin.ModelAdmin):
 
     def price_display(self, obj): 
         return mark_safe(f'<b style="color:#2563eb">₹{float(obj.total_price or 0):,.2f}</b>')
+    
+    def coupon_display(self, obj):
+        """Display coupon code and discount amount if applied"""
+        if obj.coupon_code and obj.discount_amount and float(obj.discount_amount) > 0:
+            discount_amt = float(obj.discount_amount)
+            # Format the discount amount first as a string to avoid format_html issues
+            discount_text = f'-₹{discount_amt:.2f}'
+            return format_html(
+                '<div style="display:flex; flex-direction:column; gap:2px;">'
+                '<span style="background:#15803d; color:white; padding:2px 8px; border-radius:8px; font-size:10px; font-weight:bold; font-family:monospace;">{}</span>'
+                '<span style="color:#15803d; font-weight:bold; font-size:11px;">{}</span>'
+                '</div>',
+                obj.coupon_code,
+                discount_text
+            )
+        return format_html('<span style="color:#94a3b8; font-size:11px;">No coupon</span>')
+    coupon_display.short_description = 'Coupon Applied'
 
     def payment_status_badge(self, obj):
         colors = {'Success': '#15803d', 'Pending': '#2563eb', 'Failed': '#be123c'}
@@ -201,6 +219,12 @@ class PricingConfigAdmin(admin.ModelAdmin):
                 ('custom_1_9_price_admin', 'custom_1_9_price_dealer'),
             ),
         }),
+        ('🎨 Custom Print Layout Prices - Double Side', {
+            'fields': (
+                ('custom_1_8_price_double_admin', 'custom_1_8_price_double_dealer'),
+                ('custom_1_9_price_double_admin', 'custom_1_9_price_double_dealer'),
+            ),
+        }),
         ('🚚 Delivery Charges (Per Order)', {
             'fields': (('delivery_price_admin', 'delivery_price_dealer'),),
         }),
@@ -233,6 +257,11 @@ class CouponAdmin(admin.ModelAdmin):
     search_fields = ('code', 'description')
     
     readonly_fields = ('current_usage_count', 'created_at', 'updated_at')
+    
+    # Add custom form widgets for date/time fields
+    formfield_overrides = {
+        models.DateTimeField: {'widget': admin.widgets.AdminSplitDateTime},
+    }
     
     fieldsets = (
         ('Coupon Details', {
@@ -316,3 +345,43 @@ admin_site.register(PublicHoliday)
 admin_site.register(Location)
 admin_site.register(User, UserAdmin)
 admin_site.register(Group, GroupAdmin)
+
+
+# --- 🎁 9. POPUP OFFER ADMIN ---
+@admin.register(PopupOffer, site=admin_site)
+class PopupOfferAdmin(admin.ModelAdmin):
+    list_display = ('title', 'status_badge', 'priority', 'start_date', 'end_date', 'thumbnail')
+    list_filter = ('is_active', 'start_date', 'end_date')
+    search_fields = ('title', 'description')
+    ordering = ('-priority', '-created_at')
+    
+    fieldsets = (
+        ('Offer Details', {
+            'fields': ('title', 'description', 'image', 'action_url')
+        }),
+        ('Display Settings', {
+            'fields': ('is_active', 'priority')
+        }),
+        ('Schedule', {
+            'fields': ('start_date', 'end_date'),
+            'description': 'The popup will only be valid between these dates.'
+        })
+    )
+    
+    def thumbnail(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" style="width: 50px; height: 30px; object-fit: cover; border-radius: 4px;" />', obj.image.url)
+        return ""
+    
+    def status_badge(self, obj):
+        from django.utils import timezone
+        now = timezone.now()
+        
+        if not obj.is_active:
+             return format_html('<span style="color: #64748b;">Inactive</span>')
+        elif now < obj.start_date:
+            return format_html('<span style="color: #ca8a04;">Scheduled</span>')
+        elif now > obj.end_date:
+            return format_html('<span style="color: #be123c;">Expired</span>')
+        else:
+            return format_html('<span style="color: #15803d; font-weight: bold;">Matches Criteria</span>')

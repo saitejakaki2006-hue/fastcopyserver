@@ -17,4 +17,4 @@ python-dotenv
 Pillow
 
 # Security & Utilities
-cryptography
+cryptographypython-dotenv==1.2.1

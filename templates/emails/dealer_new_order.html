@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Order in Your Location - {{ order.order_id }}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 900;
+        }
+
+        .location-badge {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 10px 20px;
+            border-radius: 8px;
+            display: inline-block;
+            font-weight: bold;
+            margin: 20px;
+            border: 2px solid #fde68a;
+            font-size: 15px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .order-box {
+            background: #f3f4f6;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #7c3aed;
+        }
+
+        .order-box h3 {
+            margin: 0 0 15px 0;
+            color: #1f2937;
+        }
+
+        .order-info {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .order-info:last-child {
+            border-bottom: none;
+        }
+
+        .label {
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        .value {
+            color: #1f2937;
+            font-weight: bold;
+        }
+
+        .customer-box {
+            background: #dbeafe;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .customer-box h4 {
+            margin: 0 0 10px 0;
+            color: #1e40af;
+        }
+
+        .price-banner {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .price-banner h2 {
+            margin: 0;
+            font-size: 32px;
+        }
+
+        .footer {
+            background: #f9fafb;
+            padding: 20px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 13px;
+            border-top: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>📦 New Order in Your Area!</h1>
+        </div>
+
+        <div style="text-align: center;">
+            <div class="location-badge">📍 {{ order.location }}</div>
+        </div>
+
+        <div class="content">
+            <p>Hello <strong>{{ dealer_name }}</strong>,</p>
+
+            <p>A new order has been placed in your assigned location. Please prepare for processing.</p>
+
+            <div class="order-box">
+                <h3>Order Information</h3>
+                <div class="order-info">
+                    <span class="label">Order ID:</span>
+                    <span class="value">{{ order.order_id }}</span>
+                </div>
+                <div class="order-info">
+                    <span class="label">Service:</span>
+                    <span class="value">{{ order.service_name }}</span>
+                </div>
+                <div class="order-info">
+                    <span class="label">Print Mode:</span>
+                    <span class="value">{{ order.print_mode }}</span>
+                </div>
+                <div class="order-info">
+                    <span class="label">Side Type:</span>
+                    <span class="value">{{ order.side_type|title }}</span>
+                </div>
+                <div class="order-info">
+                    <span class="label">Copies:</span>
+                    <span class="value">{{ order.copies }}</span>
+                </div>
+                <div class="order-info">
+                    <span class="label">Total Pages:</span>
+                    <span class="value">{{ order.pages }}</span>
+                </div>
+            </div>
+
+            <div class="customer-box">
+                <h4>Customer Pickup Details</h4>
+                <p style="margin: 5px 0;"><strong>Name:</strong> {{ customer_name }}</p>
+                <p style="margin: 5px 0;"><strong>Phone:</strong> {{ customer_phone }}</p>
+                <p style="margin: 5px 0;"><strong>Location:</strong> {{ order.location }}</p>
+            </div>
+
+            <div class="price-banner">
+                <p style="margin: 0; font-size: 14px; opacity: 0.9;">Your Earning</p>
+                <h2>₹{{ dealer_amount|floatformat:2 }}</h2>
+            </div>
+
+            <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 0; color: #92400e;">
+                    <strong>📅 Delivery Date:</strong> {{ order.estimated_delivery_date|date:"l, d M Y" }}
+                </p>
+            </div>
+
+            <p
+                style="padding: 15px; background: #f3f4f6; border-radius: 6px; font-size: 14px; color: #4b5563; margin-top: 20px;">
+                <strong>Action Required:</strong> Please process this order and ensure it's ready by the estimated
+                delivery date.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p><strong>{{ company_name }} Dealer Network</strong></p>
+            <p style="margin-top: 10px; font-size: 11px; color: #9ca3af;">
+                This is an automated notification for dealers. For support, contact {{ support_email }}
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>

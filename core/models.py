@@ -252,6 +252,13 @@ class PricingConfig(models.Model):
     custom_1_9_price_admin = models.DecimalField(max_digits=5, decimal_places=2, default=4.00, verbose_name="1/9 Layout Price (Admin)")
     custom_1_9_price_dealer = models.DecimalField(max_digits=5, decimal_places=2, default=3.00, verbose_name="1/9 Layout Price (Dealer)")
 
+    # Custom Layout Prices - Double Side
+    custom_1_8_price_double_admin = models.DecimalField(max_digits=5, decimal_places=2, default=5.00, verbose_name="1/8 Layout Price Double (Admin)")
+    custom_1_8_price_double_dealer = models.DecimalField(max_digits=5, decimal_places=2, default=4.00, verbose_name="1/8 Layout Price Double (Dealer)")
+
+    custom_1_9_price_double_admin = models.DecimalField(max_digits=5, decimal_places=2, default=5.00, verbose_name="1/9 Layout Price Double (Admin)")
+    custom_1_9_price_double_dealer = models.DecimalField(max_digits=5, decimal_places=2, default=4.00, verbose_name="1/9 Layout Price Double (Dealer)")
+
     # Spiral Binding Tiers
     spiral_tier1_limit = models.IntegerField(default=40)
     spiral_tier2_limit = models.IntegerField(default=60)
@@ -436,3 +443,24 @@ class Coupon(models.Model):
         """Increment usage count when coupon is used"""
         self.current_usage_count += 1
         self.save()
+
+
+# --- 10. POPUP OFFER MODEL ---
+class PopupOffer(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='offers/', help_text="Upload an image for the popup/modal")
+    action_url = models.URLField(blank=True, null=True, help_text="Optional URL to redirect when clicked")
+    
+    is_active = models.BooleanField(default=True)
+    start_date = models.DateTimeField(help_text="When to start showing this offer")
+    end_date = models.DateTimeField(help_text="When to stop showing this offer")
+    priority = models.IntegerField(default=1, help_text="Higher number means higher priority if multiple overlap")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-priority', '-created_at']
+        
+    def __str__(self):
+        return f"{self.title} ({'Active' if self.is_active else 'Inactive'})"

@@ -271,9 +271,9 @@
                         <i class="fa-solid fa-layer-group lg:hidden text-blue-600"></i> Services
                     </a>
                     <ul class="dropdown-menu bg-white border-slate-200" aria-labelledby="servicesDropdown">
-                        <li><a class="dropdown-item" href="{% url 'services' %}#Printing">Standard Printing</a></li>
+                        <li><a class="dropdown-item" href="{% url 'services' %}#Printing">Printing</a></li>
                         <li><a class="dropdown-item" href="{% url 'services' %}#Spiral">Spiral Binding</a></li>
-                        <li><a class="dropdown-item" href="{% url 'services' %}#Soft">Soft Glue Binding</a></li>
+                        <li><a class="dropdown-item" href="{% url 'services' %}#Soft">Soft Binding</a></li>
                         <li><a class="dropdown-item" href="{% url 'services' %}#Custom">Customized Layouts</a></li>
                     </ul>
                 </div>
@@ -423,17 +423,17 @@
                         Platform</h6>
                     <ul class="list-unstyled space-y-4">
                         <li><a href="{% url 'home' %}"
-                                class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Main
-                                Hub</a></li>
+                                class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Home
+                            </a></li>
                         <li><a href="{% url 'services' %}"
                                 class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Print
                                 Services</a></li>
                         <li><a href="{% url 'cart' %}"
-                                class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Active
-                                Cart</a></li>
+                                class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Cart</a>
+                        </li>
                         <li><a href="{% url 'profile' %}"
-                                class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Live
-                                Status</a></li>
+                                class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Order
+                                Tracking</a></li>
                     </ul>
                 </div>
 
@@ -442,17 +442,17 @@
                         Center</h6>
                     <ul class="list-unstyled space-y-4">
                         <li><a href="{% url 'about' %}"
-                                class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">The
-                                Story</a></li>
+                                class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">About
+                                Us</a></li>
                         <li><a href="{% url 'contact' %}"
-                                class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Support
-                                Desk</a></li>
+                                class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Contact
+                                Us</a></li>
                         <li><a href="{% url 'privacy_policy' %}"
-                                class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Data
+                                class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Privacy
                                 Policy</a></li>
                         <li><a href="{% url 'terms_conditions' %}"
-                                class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Service
-                                Terms</a></li>
+                                class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Terms
+                                & Conditions</a></li>
                     </ul>
                 </div>
 
@@ -462,8 +462,9 @@
                     <div class="space-y-5">
                         <div class="flex items-center gap-4 group">
                             <i class="fa-solid fa-phone text-blue-500 group-hover:rotate-12 transition-transform"></i>
-                            <span class="text-[11px] font-black text-slate-300 uppercase tracking-tighter">+91 94410
-                                55486</span>
+                            <span class="text-[11px] font-black text-slate-300 uppercase tracking-tighter">+91
+                                8500290959
+                            </span>
                         </div>
                         <div class="flex items-center gap-4 group">
                             <i
@@ -506,8 +507,7 @@
         AOS.init({
             duration: 1000,
             once: true,
-            easing: 'ease-out-back',
-            disable: 'mobile'
+            easing: 'ease-out-back'
         });
 
         function toggleMenu() {

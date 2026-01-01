@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Order Alert - {{ order.order_id }}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .email-container {
+            max-width: 650px;
+            margin: 20px auto;
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 900;
+        }
+
+        .alert-badge {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 10px 20px;
+            border-radius: 8px;
+            display: inline-block;
+            font-weight: bold;
+            margin: 20px;
+            border: 2px solid #fecaca;
+            font-size: 16px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .info-box {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #2563eb;
+        }
+
+        .info-box h4 {
+            margin: 0 0 5px 0;
+            color: #6b7280;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-box p {
+            margin: 0;
+            color: #1f2937;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: #f9fafb;
+        }
+
+        .details-table th {
+            background: #374151;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .details-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            color: #4b5563;
+        }
+
+        .price-highlight {
+            background: #dbeafe;
+            font-weight: bold;
+            color: #1e40af;
+            font-size: 18px;
+        }
+
+        .action-button {
+            display: inline-block;
+            background: #2563eb;
+            color: white;
+            padding: 14px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .footer {
+            background: #1f2937;
+            padding: 20px;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 13px;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>🔔 New Order Received!</h1>
+        </div>
+
+        <div style="text-align: center;">
+            <div class="alert-badge">⚡ Action Required - New Order #{{ order.order_id }}</div>
+        </div>
+
+        <div class="content">
+            <h2 style="color: #1f2937; margin-bottom: 20px;">Customer Information</h2>
+
+            <div class="info-grid">
+                <div class="info-box">
+                    <h4>Customer Name</h4>
+                    <p>{{ customer_name }}</p>
+                </div>
+                <div class="info-box">
+                    <h4>Order ID</h4>
+                    <p>{{ order.order_id }}</p>
+                </div>
+                <div class="info-box">
+                    <h4>Email</h4>
+                    <p>{{ customer_email }}</p>
+                </div>
+                <div class="info-box">
+                    <h4>Phone</h4>
+                    <p>{{ customer_phone }}</p>
+                </div>
+                {% if order.location %}
+                <div class="info-box" style="grid-column: 1 / -1;">
+                    <h4>📍 Pickup Location</h4>
+                    <p>{{ order.location }}</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <h2 style="color: #1f2937; margin-top: 30px;">Order Details</h2>
+
+            <table class="details-table">
+                <tr>
+                    <th>Service</th>
+                    <td>{{ order.service_name }}</td>
+                </tr>
+                <tr>
+                    <th>Print Mode</th>
+                    <td>{{ order.print_mode }}</td>
+                </tr>
+                <tr>
+                    <th>Side Type</th>
+                    <td>{{ order.side_type|title }}</td>
+                </tr>
+                <tr>
+                    <th>Copies</th>
+                    <td>{{ order.copies }}</td>
+                </tr>
+                <tr>
+                    <th>Total Pages</th>
+                    <td>{{ order.pages }}</td>
+                </tr>
+                {% if order.coupon_code %}
+                <tr>
+                    <th>Coupon Applied</th>
+                    <td>{{ order.coupon_code }} (Discount: ₹{{ order.discount_amount }})</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <th>Payment Status</th>
+                    <td><strong style="color: #10b981;">✓ {{ order.payment_status }}</strong></td>
+                </tr>
+                <tr>
+                    <th>Order Source</th>
+                    <td>{{ order.order_source }}</td>
+                </tr>
+                <tr class="price-highlight">
+                    <th>Total Amount</th>
+                    <td>₹{{ order.total_price }}</td>
+                </tr>
+            </table>
+
+            <div
+                style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+                <p style="margin: 0; color: #92400e;">
+                    <strong>📅 Estimated Delivery:</strong> {{ order.estimated_delivery_date|date:"l, d M Y" }}
+                </p>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="{{ admin_panel_url }}" class="action-button">
+                    🔗 View in Admin Panel
+                </a>
+            </div>
+
+            <p
+                style="margin-top: 30px; padding: 15px; background: #f3f4f6; border-radius: 6px; font-size: 14px; color: #4b5563;">
+                <strong>Note:</strong> This order has been confirmed and payment received. Please process this order and
+                update the status in the admin panel.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p style="margin: 0;">{{ company_name }} Admin Dashboard</p>
+            <p style="margin: 5px 0 0 0; font-size: 11px;">Automated notification - Do not reply to this email</p>
+        </div>
+    </div>
+</body>
+
+</html>

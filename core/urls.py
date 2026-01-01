@@ -16,6 +16,11 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('profile/', views.profile_view, name='profile'),
     path('profile/edit/', views.edit_profile, name='edit_profile'),
+    path('profile/change-password/', views.change_password, name='change_password'),
+    path('forgot-password/', views.forgot_password_request, name='forgot_password'),
+    path('forgot-password/sent/', views.forgot_password_sent, name='forgot_password_sent'),
+    path('password-reset/<uidb64>/<token>/', views.password_reset_confirm, name='password_reset_confirm'),
+    path('password-reset/complete/', views.password_reset_complete, name='password_reset_complete'),
     path('history/', views.history_view, name='history'),
 
     # --- 🛒 Cart Logic ---

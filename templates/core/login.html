@@ -2,49 +2,72 @@
 {% block content %}
 <section class="min-vh-100 flex items-center justify-center px-4 py-12 relative overflow-hidden bg-slate-50">
     <div class="absolute top-0 left-0 w-64 h-64 bg-blue-600/5 blur-[100px] rounded-full floating-3d"></div>
-    <div class="absolute bottom-0 right-0 w-80 h-80 bg-purple-600/5 blur-[120px] rounded-full floating-3d" style="animation-delay: 2s;"></div>
+    <div class="absolute bottom-0 right-0 w-80 h-80 bg-purple-600/5 blur-[120px] rounded-full floating-3d"
+        style="animation-delay: 2s;"></div>
 
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-12 col-md-6 col-lg-4" data-aos="zoom-in">
-                <div class="bg-white p-6 p-md-8 rounded-[2.5rem] shadow-2xl border border-slate-100 hover-lift transition-all">
+                <div
+                    class="bg-white p-6 p-md-8 rounded-[2.5rem] shadow-2xl border border-slate-100 hover-lift transition-all">
                     <div class="text-center mb-8">
-                        <div class="inline-flex items-center justify-center w-14 h-14 bg-blue-600 text-white rounded-2xl text-xl shadow-lg shadow-blue-100 mb-4 rotate-3">
+                        <div
+                            class="inline-flex items-center justify-center w-14 h-14 bg-blue-600 text-white rounded-2xl text-xl shadow-lg shadow-blue-100 mb-4 rotate-3">
                             <i class="fa-solid fa-fingerprint"></i>
                         </div>
-                        <h2 class="text-2xl font-black text-slate-900 uppercase italic tracking-tighter">Login <span class="text-blue-600">Hub</span></h2>
-                        <p class="text-slate-400 font-bold uppercase tracking-widest text-[9px] mt-1">Access your premium profile</p>
+                        <h2 class="text-2xl font-black text-slate-900 uppercase italic tracking-tighter">Login <span
+                                class="text-blue-600">Hub</span></h2>
+                        <p class="text-slate-400 font-bold uppercase tracking-widest text-[9px] mt-1">Access your
+                            premium profile</p>
                     </div>
 
                     <form method="POST" class="space-y-4">
                         {% csrf_token %}
                         <div class="form-group">
-                            <label class="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 px-1">Mobile Number</label>
+                            <label
+                                class="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 px-1">Mobile
+                                Number</label>
                             <div class="input-group shadow-sm rounded-xl overflow-hidden">
-                                <span class="input-group-text bg-slate-50 border-0"><i class="fa-solid fa-phone text-blue-600 text-xs"></i></span>
-                                <input type="text" name="mobile" required class="form-control bg-slate-50 border-0 py-3 fw-bold text-sm">
+                                <span class="input-group-text bg-slate-50 border-0"><i
+                                        class="fa-solid fa-phone text-blue-600 text-xs"></i></span>
+                                <input type="text" name="mobile" required
+                                    class="form-control bg-slate-50 border-0 py-3 fw-bold text-sm">
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label class="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 px-1">Password</label>
+                            <label
+                                class="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 px-1">Password</label>
                             <div class="input-group shadow-sm rounded-xl overflow-hidden">
-                                <span class="input-group-text bg-slate-50 border-0"><i class="fa-solid fa-lock text-blue-600 text-xs"></i></span>
-                                <input type="password" id="login-pass" name="password" required class="form-control bg-slate-50 border-0 py-3 fw-bold text-sm">
-                                <button type="button" onclick="togglePass('login-pass', this)" class="bg-slate-50 border-0 px-3">
+                                <span class="input-group-text bg-slate-50 border-0"><i
+                                        class="fa-solid fa-lock text-blue-600 text-xs"></i></span>
+                                <input type="password" id="login-pass" name="password" required
+                                    class="form-control bg-slate-50 border-0 py-3 fw-bold text-sm">
+                                <button type="button" onclick="togglePass('login-pass', this)"
+                                    class="bg-slate-50 border-0 px-3">
                                     <i class="fa-solid fa-eye text-slate-400 text-xs"></i>
                                 </button>
                             </div>
                         </div>
 
-                        <button type="submit" class="btn-3d w-100 py-3 bg-blue-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-xl hover:bg-blue-700 transition-all mt-4">
+                        <div class="text-right mt-2">
+                            <a href="{% url 'forgot_password' %}"
+                                class="text-orange-500 font-bold text-[10px] uppercase tracking-widest no-underline hover:text-orange-600">
+                                Forgot Password? <i class="fa-solid fa-key ml-1"></i>
+                            </a>
+                        </div>
+
+                        <button type="submit"
+                            class="btn-3d w-100 py-3 bg-blue-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-xl hover:bg-blue-700 transition-all mt-4">
                             Sign In <i class="fa-solid fa-arrow-right-to-bracket ml-2"></i>
                         </button>
                     </form>
 
                     <div class="mt-8 text-center pt-6 border-top border-slate-50">
-                        <p class="text-slate-400 font-bold text-[9px] uppercase tracking-widest mb-2">New to FastCopy?</p>
-                        <a href="{% url 'register' %}" class="text-blue-600 font-black uppercase italic tracking-tighter text-xs no-underline hover:text-blue-800">
+                        <p class="text-slate-400 font-bold text-[9px] uppercase tracking-widest mb-2">New to FastCopy?
+                        </p>
+                        <a href="{% url 'register' %}"
+                            class="text-blue-600 font-black uppercase italic tracking-tighter text-xs no-underline hover:text-blue-800">
                             Create ID <i class="fa-solid fa-user-plus ml-1"></i>
                         </a>
                     </div>
@@ -55,16 +78,16 @@
 </section>
 
 <script>
-function togglePass(id, btn) {
-    const input = document.getElementById(id);
-    const icon = btn.querySelector('i');
-    if (input.type === "password") {
-        input.type = "text";
-        icon.classList.replace('fa-eye', 'fa-eye-slash');
-    } else {
-        input.type = "password";
-        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    function togglePass(id, btn) {
+        const input = document.getElementById(id);
+        const icon = btn.querySelector('i');
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            input.type = "password";
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
     }
-}
 </script>
 {% endblock %}

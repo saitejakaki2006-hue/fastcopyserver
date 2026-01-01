@@ -14,8 +14,10 @@ from functools import wraps
 from datetime import datetime, timedelta
 from django.db.models import Q, Sum, Count
 
-from .models import Service, Order, UserProfile, CartItem, PricingConfig, Location, Coupon
+from django.utils import timezone
+from .models import Service, Order, UserProfile, CartItem, PricingConfig, Location, Coupon, PopupOffer
 from .utils import calculate_delivery_date
+from .notifications import send_all_order_notifications
 
 # --- 🚀 0. CORE LOGIC ENGINES (Success/Failure/Helper) ---
 
@@ -62,6 +64,8 @@ def get_user_pricing(user):
         'custom_1_4_price': float(config.custom_1_4_price_dealer) if is_dealer else float(config.custom_1_4_price_admin),
         'custom_1_8_price': float(config.custom_1_8_price_dealer) if is_dealer else float(config.custom_1_8_price_admin),
         'custom_1_9_price': float(config.custom_1_9_price_dealer) if is_dealer else float(config.custom_1_9_price_admin),
+        'custom_1_8_price_double': float(config.custom_1_8_price_double_dealer) if is_dealer else float(config.custom_1_8_price_double_admin),
+        'custom_1_9_price_double': float(config.custom_1_9_price_double_dealer) if is_dealer else float(config.custom_1_9_price_double_admin),
         'delivery_charge': float(config.delivery_price_dealer) if is_dealer else float(config.delivery_price_admin),
     }
     return base_dict
@@ -185,18 +189,142 @@ def login_view(request):
         user = authenticate(request, username=mobile, password=pw)
         if user:
             login(request, user)
-            return redirect('cart') 
+            return redirect('home') 
         messages.error(request, "Invalid login credentials.")
     return render(request, 'core/login.html')
 
 def logout_view(request):
     logout(request); return redirect('home')
 
+# --- 🔐 FORGOT PASSWORD VIEWS ---
+
+def forgot_password_request(request):
+    """Step 1: User enters mobile number to request password reset"""
+    if request.user.is_authenticated:
+        return redirect('home')
+    
+    if request.method == "POST":
+        mobile = request.POST.get('mobile', '').strip()
+        
+        if not mobile:
+            messages.error(request, "Please enter your mobile number.")
+            return render(request, 'core/forgot_password.html')
+        
+        try:
+            user = User.objects.get(username=mobile)
+            
+            if not user.email:
+                messages.error(request, "No email address is associated with this account. Please contact support.")
+                return render(request, 'core/forgot_password.html')
+            
+            # Generate password reset token
+            from django.contrib.auth.tokens import default_token_generator
+            from django.utils.http import urlsafe_base64_encode
+            from django.utils.encoding import force_bytes
+            from django.core.mail import send_mail
+            from django.template.loader import render_to_string
+            from django.conf import settings
+            
+            token = default_token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            
+            # Build reset URL
+            reset_url = f"{request.scheme}://{request.get_host()}/password-reset/{uid}/{token}/"
+            
+            # Send email
+            subject = "Reset Your FastCopy Password"
+            message = render_to_string('core/password_reset_email.html', {
+                'user': user,
+                'reset_url': reset_url,
+                'company_name': getattr(settings, 'COMPANY_NAME', 'FastCopy'),
+            })
+            
+            try:
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [user.email],
+                    html_message=message,
+                    fail_silently=False,
+                )
+                messages.success(request, f"Password reset link sent to your registered email ({user.email[:3]}***{user.email[-10:]}).")
+                return redirect('forgot_password_sent')
+            except Exception as e:
+                messages.error(request, "Failed to send email. Please try again later.")
+                return render(request, 'core/forgot_password.html')
+                
+        except User.DoesNotExist:
+            # Don't reveal if mobile exists or not (security)
+            messages.error(request, "If this mobile number is registered, you will receive a password reset email.")
+            return redirect('forgot_password_sent')
+    
+    return render(request, 'core/forgot_password.html')
+
+def forgot_password_sent(request):
+    """Step 2: Confirmation page after sending reset email"""
+    return render(request, 'core/forgot_password_sent.html')
+
+def password_reset_confirm(request, uidb64, token):
+    """Step 3: User clicks reset link and sets new password"""
+    from django.contrib.auth.tokens import default_token_generator
+    from django.utils.http import urlsafe_base64_decode
+    
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    
+    if user is not None and default_token_generator.check_token(user, token):
+        if request.method == "POST":
+            new_password = request.POST.get('new_password')
+            confirm_password = request.POST.get('confirm_password')
+            
+            if not new_password or len(new_password) < 8:
+                messages.error(request, "Password must be at least 8 characters long.")
+                return render(request, 'core/password_reset_confirm.html', {'valid_link': True})
+            
+            if new_password != confirm_password:
+                messages.error(request, "Passwords do not match.")
+                return render(request, 'core/password_reset_confirm.html', {'valid_link': True})
+            
+            user.set_password(new_password)
+            user.save()
+            messages.success(request, "Your password has been reset successfully! You can now login.")
+            return redirect('password_reset_complete')
+        
+        return render(request, 'core/password_reset_confirm.html', {'valid_link': True})
+    else:
+        return render(request, 'core/password_reset_confirm.html', {'valid_link': False})
+
+def password_reset_complete(request):
+    """Step 4: Password reset success page"""
+    return render(request, 'core/password_reset_complete.html')
+
 @login_required(login_url='login')
 def profile_view(request):
+    """
+    Profile View: Rectified to include live order tracking for the dashboard.
+    Fetches the latest active (non-delivered) successful order for the tracker.
+    """
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
-    context = {'profile': profile, 'user_name': request.user.first_name, 'user_email': request.user.email, 'recent_bookings': orders[:5]}
+    
+    # NEW FEATURE: Fetch the most recent active order for the Live Tracker
+    # We look for successful payments that are NOT yet delivered
+    tracking = Order.objects.filter(
+        user=request.user, 
+        payment_status='Success'
+    ).exclude(status__in=['Delivered', 'Rejected', 'Cancelled']).order_by('-created_at').first()
+    
+    context = {
+        'profile': profile, 
+        'user_name': request.user.first_name, 
+        'user_email': request.user.email, 
+        'recent_bookings': orders[:5],
+        'tracking': tracking  # Passed to profile.html for the Active Tracking box
+    }
     return render(request, 'core/profile.html', context)
 
 @login_required(login_url='login')
@@ -213,6 +341,47 @@ def edit_profile(request):
         messages.success(request, "Updated successfully!")
         return redirect('profile')
     return render(request, 'core/edit_profile.html', {'profile': profile})
+
+@login_required(login_url='login')
+def change_password(request):
+    if request.method == "POST":
+        current_password = request.POST.get('current_password')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        
+        # Validate current password
+        if not request.user.check_password(current_password):
+            messages.error(request, "Current password is incorrect!")
+            return redirect('change_password')
+        
+        # Validate new password match
+        if new_password != confirm_password:
+            messages.error(request, "New passwords do not match!")
+            return redirect('change_password')
+        
+        # Validate password length
+        if len(new_password) < 8:
+            messages.error(request, "Password must be at least 8 characters long!")
+            return redirect('change_password')
+        
+        # Validate password is different from current
+        if current_password == new_password:
+            messages.error(request, "New password must be different from current password!")
+            return redirect('change_password')
+        
+        # Update password
+        request.user.set_password(new_password)
+        request.user.save()
+        
+        # Re-authenticate user to keep them logged in
+        from django.contrib.auth import update_session_auth_hash
+        update_session_auth_hash(request, request.user)
+        
+        messages.success(request, "Password changed successfully!")
+        return redirect('profile')
+    
+    return render(request, 'core/change_password.html')
+
 
 @login_required(login_url='login')
 def history_view(request):
@@ -554,31 +723,91 @@ def initiate_payment(request):
                 del request.session['applied_coupon_code']
                 request.session.modified = True
     
-    callback_url = f"{request.scheme}://{request.get_host()}/payment/callback/"
+    
+    # Cashfree production requires HTTPS for return_url
+    # Strategy: Use localhost for return but provide valid HTTPS for webhook
+    if 'localhost' in request.get_host() or '127.0.0.1' in request.get_host():
+        # For local development:
+        # - return_url: Where user comes back (can be HTTP for customer redirect)
+        # - We'll use a valid HTTPS URL in the API but override in SDK
+        return_url_for_api = "https://www.cashfree.com"  # Dummy HTTPS for API validation
+        actual_return_url = f"http://{request.get_host()}/payment/callback/"
+    else:
+        # For production: Use actual HTTPS domain
+        return_url_for_api = f"https://{request.get_host()}/payment/callback/"
+        actual_return_url = return_url_for_api
+    
     user_mobile = request.user.profile.mobile if hasattr(request.user, 'profile') else "9999999999"
     if not user_mobile.startswith('91'): user_mobile = f"91{user_mobile}"
 
     payload = {
-        "order_id": unique_order_id, "order_amount": float(final_total), "order_currency": "INR",
-        "customer_details": {"customer_id": f"CUST_{request.user.id}", "customer_name": request.user.username, "customer_email": request.user.email or "test@fastcopy.in", "customer_phone": user_mobile},
-        "order_meta": {"return_url": callback_url, "notify_url": callback_url}
+        "order_id": unique_order_id,
+        "order_amount": float(final_total),
+        "order_currency": "INR",
+        "customer_details": {
+            "customer_id": f"CUST_{request.user.id}",
+            "customer_name": request.user.username,
+            "customer_email": request.user.email or "test@fastcopy.in",
+            "customer_phone": user_mobile
+        },
+        "order_meta": {
+            "return_url": return_url_for_api
+        }
     }
     headers = {"Content-Type": "application/json", "x-api-version": settings.CASHFREE_API_VERSION, "x-client-id": settings.CASHFREE_APP_ID, "x-client-secret": settings.CASHFREE_SECRET_KEY}
     
+    # Debug logging
+    print(f"=== Cashfree Payment Initiation ===")
+    print(f"Order ID: {unique_order_id}")
+    print(f"Amount: {final_total}")
+    print(f"API URL: {settings.CASHFREE_API_URL}/orders")
+    print(f"Return URL (API): {return_url_for_api}")
+    print(f"Return URL (Actual): {actual_return_url}")
+    
+    # Store the actual return URL in session for frontend to use
+    request.session['payment_return_url'] = actual_return_url
+    request.session.modified = True
+    
     try:
-        response = requests.post(f"{settings.CASHFREE_API_URL}/orders", json=payload, headers=headers)
+        response = requests.post(f"{settings.CASHFREE_API_URL}/orders", json=payload, headers=headers, timeout=10)
         res_json = response.json()
+        
+        # Log the response for debugging
+        print(f"Cashfree API Response Status: {response.status_code}")
+        print(f"Cashfree API Response: {res_json}")
+        
         if response.status_code == 200 and res_json.get('payment_session_id'):
             request.session['cashfree_payment_session_id'] = res_json.get('payment_session_id')
             request.session['cashfree_order_id'] = unique_order_id
             request.session.modified = True
             return redirect('cashfree_checkout')
+        else:
+            # API call failed, show error message
+            error_msg = res_json.get('message', 'Payment gateway error')
+            print(f"Cashfree Error: {error_msg}")
+            messages.error(request, f"Payment initiation failed: {error_msg}")
+            return redirect('cart')
+    except requests.exceptions.Timeout:
+        print("Cashfree API Timeout")
+        messages.error(request, "Payment gateway timeout. Please try again.")
         return redirect('cart')
-    except: return redirect('cart')
+    except requests.exceptions.RequestException as e:
+        print(f"Cashfree API Request Error: {str(e)}")
+        messages.error(request, "Unable to connect to payment gateway. Please try again.")
+        return redirect('cart')
+    except Exception as e:
+        print(f"Unexpected Error in initiate_payment: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        messages.error(request, "An unexpected error occurred. Please try again.")
+        return redirect('cart')
 
 @csrf_exempt
 def payment_callback(request):
-    """STRICT CALLBACK: Updates DB to Success or Failed/Cancelled."""
+    """
+    STRICT CALLBACK: Updates DB and triggers specific email workflow.
+    Workflow: Sent FROM Admin TO Support Team and Dealer.
+    """
     order_id = (request.GET.get('order_id') or 
                 request.GET.get('orderId') or 
                 request.session.get('cashfree_order_id'))
@@ -611,7 +840,25 @@ def payment_callback(request):
         order_status = 'FAILED'
 
     if order_status == 'PAID':
+        # 1. Finalize the order in the database
         process_successful_order(request.user, items_involved, txn_id)
+        
+        # 2. Send email notifications to Customer, Admin, and Dealers
+        successful_orders = Order.objects.filter(transaction_id=txn_id, payment_status='Success')
+        
+        for order in successful_orders:
+            try:
+                # This function sends emails to:
+                # 1. Customer - Order confirmation 
+                # 2. Admin - New order alert
+                # 3. Dealers - Order alert for their location
+                send_all_order_notifications(order)
+                print(f"✅ Emails sent successfully for order {order.order_id}")
+            except Exception as e:
+                # Log error but don't fail the order - emails are non-critical
+                print(f"⚠️ Email notification error for order {order.order_id}: {str(e)}")
+        
+        # 3. Session and Cart Cleanup
         if is_direct: 
             CartItem.objects.filter(user=request.user, document_name=direct_item.get('document_name')).delete()
             if 'direct_item' in request.session: del request.session['direct_item']
@@ -620,9 +867,13 @@ def payment_callback(request):
             request.session['cart'] = []
         
         if 'cashfree_order_id' in request.session: del request.session['cashfree_order_id']
-        messages.success(request, "Payment successful! Order placed.")
+        if 'applied_coupon_code' in request.session: del request.session['applied_coupon_code']
+        
+        messages.success(request, "Payment successful! Your order has been placed.")
         return redirect('history')
+    
     else:
+        # Handle Failed/Cancelled Payment
         handle_failed_order(request.user, items_involved, txn_id)
         if is_direct and direct_item:
             db_cart = CartItem.objects.filter(user=request.user)
@@ -630,15 +881,25 @@ def payment_callback(request):
             if 'direct_item' in request.session: del request.session['direct_item']
 
         messages.warning(request, "Payment was canceled or failed. Items are safe in your cart.")
-        return redirect('cart')
-
-@login_required(login_url='login')
+        return redirect('cart')@login_required(login_url='login')
 def cashfree_checkout(request):
-    context = {'payment_session_id': request.session.get('cashfree_payment_session_id'), 'cashfree_env': 'sandbox'}
+    context = {'payment_session_id': request.session.get('cashfree_payment_session_id'), 'cashfree_env': 'production'}
     return render(request, 'core/cashfree_checkout.html', context)
 
 # --- 🌐 5. STATIC PAGES ---
-def home(request): return render(request, 'core/index.html', {'services': Service.objects.all()[:3]})
+def home(request):
+    # Fetch active popup offer
+    now = timezone.now()
+    active_offer = PopupOffer.objects.filter(
+        is_active=True,
+        start_date__lte=now,
+        end_date__gte=now
+    ).order_by('-priority', '-created_at').first()
+    
+    return render(request, 'core/index.html', {
+        'services': Service.objects.all()[:3],
+        'popup_offer': active_offer
+    })
 
 def services_page(request):
     pricing = get_user_pricing(request.user) if request.user.is_authenticated else None
@@ -663,6 +924,8 @@ def services_page(request):
         'custom_1_4': float(config.custom_1_4_price_admin),
         'custom_1_8': float(config.custom_1_8_price_admin),
         'custom_1_9': float(config.custom_1_9_price_admin),
+        'custom_1_8_double': float(config.custom_1_8_price_double_admin),
+        'custom_1_9_double': float(config.custom_1_9_price_double_admin),
     }
     context = {
         'services': Service.objects.all(),
@@ -674,7 +937,58 @@ def services_page(request):
     return render(request, 'core/services.html', context)
 
 def about(request): return render(request, 'core/about.html')
-def contact(request): return render(request, 'core/contact.html')
+
+def contact(request):
+    if request.method == "POST":
+        # Get form data
+        name = request.POST.get('name', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        email = request.POST.get('email', '').strip()
+        subject = request.POST.get('subject', '').strip()
+        message_text = request.POST.get('message', '').strip()
+        
+        # Validate required fields
+        if not all([name, phone, email, subject, message_text]):
+            messages.error(request, "All fields are required.")
+            return render(request, 'core/contact.html')
+        
+        # Prepare email content
+        from django.core.mail import send_mail
+        from django.conf import settings
+        
+        email_subject = f"Contact Form: {subject}"
+        email_message = f"""
+New contact form submission from FastCopy website:
+
+Name: {name}
+Phone: {phone}
+Email: {email}
+Subject: {subject}
+
+Message:
+{message_text}
+
+---
+This email was sent from the FastCopy contact form.
+"""
+        
+        try:
+            # Send email to admin
+            send_mail(
+                email_subject,
+                email_message,
+                settings.DEFAULT_FROM_EMAIL,
+                ['fastcopyteam@gmail.com'],
+                fail_silently=False,
+            )
+            messages.success(request, "Thank you for contacting us! We'll get back to you soon.")
+            return redirect('contact')
+        except Exception as e:
+            messages.error(request, "Failed to send message. Please try again later or contact us directly.")
+            return render(request, 'core/contact.html')
+    
+    return render(request, 'core/contact.html')
+
 def privacy_policy(request): return render(request, 'core/privacy_policy.html')
 def terms_conditions(request): return render(request, 'core/terms_conditions.html')
 
@@ -732,15 +1046,31 @@ def dealer_dashboard_view(request):
             # Determine if it's single or double-sided
             is_double_sided = hasattr(order, 'side_type') and order.side_type == 'double'
             
-            # Base price per page
-            print_rate = pricing['price_per_page_double'] if is_double_sided else pricing['price_per_page']
-            
-            # Add color pricing if applicable
-            if order.print_mode == 'color':
-                color_addition = pricing['color_addition_double'] if is_double_sided else pricing['color_addition']
-                print_rate += color_addition
-            
-            cost = pages * copies * print_rate
+            # Check for custom split mode (some pages color, some B&W)
+            if 'custom' in str(order.print_mode).lower() and 'split' in str(order.print_mode).lower():
+                from .utils import count_color_pages
+                
+                # Count how many pages are color vs B&W
+                color_page_count = count_color_pages(order.custom_color_pages, pages)
+                bw_page_count = pages - color_page_count
+                
+                # Get rates for both types
+                color_rate = pricing['color_addition_double'] if is_double_sided else pricing['color_addition']
+                bw_rate = pricing['price_per_page_double'] if is_double_sided else pricing['price_per_page']
+                
+                # Calculate split cost: (color pages × color rate) + (B&W pages × B&W rate)
+                cost = ((color_page_count * color_rate) + (bw_page_count * bw_rate)) * copies
+            elif order.print_mode == 'color':
+                # All pages are color
+                # Use ONLY color price from configuration (not B&W + color)
+                print_rate = pricing['color_addition_double'] if is_double_sided else pricing['color_addition']
+                cost = pages * copies * print_rate
+            else:
+                # All pages are B&W
+                # Use B&W price for black and white prints
+                print_rate = pricing['price_per_page_double'] if is_double_sided else pricing['price_per_page']
+                cost = pages * copies * print_rate
+
         
         if "Spiral" in order.service_name:
             t1, t2, t3 = pricing['spiral_tier1_limit'], pricing['spiral_tier2_limit'], pricing['spiral_tier3_limit']
