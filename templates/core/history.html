@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load payment_filters %}
 
 {% block content %}
 <section class="py-24 min-h-screen bg-slate-50/50">
@@ -71,16 +72,22 @@
                                             class="px-2 py-1 bg-orange-50 text-orange-600 border border-orange-100 rounded text-[8px] font-black uppercase">
                                             Custom Layout
                                         </span>
-                                        {% elif order.print_mode|lower == "bw" or order.print_mode|lower == "black &
-                                        white" %}
+                                        {% elif "b&w" in order.print_mode|lower or "bw" in order.print_mode|lower or
+                                        "black" in order.print_mode|lower %}
                                         <span
                                             class="px-2 py-1 bg-slate-100 text-slate-600 border border-slate-200 rounded text-[8px] font-black uppercase">
                                             B&W
                                         </span>
-                                        {% else %}
+                                        {% elif "color" in order.print_mode|lower or "colour" in order.print_mode|lower
+                                        %}
                                         <span
                                             class="px-2 py-1 bg-blue-50 text-blue-600 border border-blue-100 rounded text-[8px] font-black uppercase">
                                             Color
+                                        </span>
+                                        {% else %}
+                                        <span
+                                            class="px-2 py-1 bg-slate-100 text-slate-600 border border-slate-200 rounded text-[8px] font-black uppercase">
+                                            {{ order.print_mode }}
                                         </span>
                                         {% endif %}
 
@@ -113,20 +120,52 @@
                                 <td class="text-center">
                                     <div class="flex flex-col items-center gap-1">
                                         {% if order.coupon_code and order.discount_amount > 0 %}
-                                        <div class="text-[8px] text-green-600 font-black uppercase tracking-tight mb-1">
+                                        <!-- Coupon Code Badge -->
+                                        <div
+                                            class="text-[8px] text-green-600 font-black uppercase tracking-tight mb-2 bg-green-50 px-2 py-1 rounded border border-green-100">
                                             <i class="fas fa-tag"></i> {{ order.coupon_code }}
                                         </div>
-                                        <span class="text-[9px] text-slate-400" style="text-decoration: line-through;">
-                                            ₹{{ order.original_price }}
-                                        </span>
-                                        <span class="text-[8px] text-green-600 font-bold">
-                                            -₹{{ order.discount_amount }}
-                                        </span>
-                                        {% endif %}
-                                        <span class="font-black text-slate-900">
+
+                                        <!-- Pricing Breakdown -->
+                                        <div class="w-full text-left bg-slate-50 p-2 rounded border border-slate-100">
+                                            <!-- Original Price -->
+                                            <div class="flex justify-between items-center mb-1">
+                                                <span class="text-[8px] text-slate-500 font-bold">Total Price:</span>
+                                                <span class="text-[9px] text-slate-600 font-bold"
+                                                    style="text-decoration: line-through;">
+                                                    ₹{{ order.original_price }}
+                                                </span>
+                                            </div>
+
+                                            <!-- Discount -->
+                                            <div class="flex justify-between items-center mb-1">
+                                                <span class="text-[8px] text-green-600 font-bold">Discount:</span>
+                                                <span class="text-[9px] text-green-600 font-black">
+                                                    -₹{{ order.discount_amount }}
+                                                </span>
+                                            </div>
+
+                                            <!-- Divider -->
+                                            <div class="border-t border-slate-200 my-1"></div>
+
+                                            <!-- Final Amount (Original - Discount) -->
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-[8px] text-slate-700 font-black">Amount Paid:</span>
+                                                <span class="text-[10px] text-slate-900 font-black">
+                                                    ₹{{ order|final_amount }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <!-- No Coupon - Simple Display -->
+                                        <div class="text-[8px] text-slate-500 font-bold mb-1">Amount Paid:</div>
+                                        <span class="font-black text-slate-900 text-sm">
                                             ₹{{ order.total_price }}
                                         </span>
-                                        <span class="text-[7px] font-black uppercase tracking-tighter px-2 py-0.5 rounded
+                                        {% endif %}
+
+                                        <!-- Payment Status Badge -->
+                                        <span class="text-[7px] font-black uppercase tracking-tighter px-2 py-0.5 rounded mt-2
                                             {% if order.payment_status == 'Success' %}
                                                 text-green-600 bg-green-50 border border-green-100
                                             {% elif order.payment_status == 'Failed' %}

@@ -122,3 +122,112 @@ def count_color_pages(page_range_string, total_pages):
     
     return len(color_pages_set)
 
+
+from django.core.mail import send_mail
+from django.conf import settings
+from django.db.models import Q
+import threading
+
+def send_mail_async(subject, message, recipient_list):
+    """
+    Wrapper to send email asynchronously (via threading) so it doesn't block the request.
+    """
+    def _send():
+        try:
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                recipient_list,
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"Error sending email: {e}")
+
+    threading.Thread(target=_send).start()
+
+def send_order_notification_emails(order):
+    """
+    Sends confirmation emails to:
+    1. Admin (fastcopyteam@gmail.com)
+    2. Dealer (if applicable)
+    3. Customer (User)
+    """
+    try:
+        # Standardize Data
+        user_name = order.user.first_name if order.user.first_name else order.user.username
+        user_email = order.user.email
+        order_details = f"""
+        Order ID: {order.order_id}
+        Service: {order.service_name}
+        Print Mode: {order.print_mode}
+        Copies: {order.copies}
+        Pages: {order.pages}
+        Total Amount: ₹{order.total_price}
+        Status: {order.status}
+        """
+
+        # 1. SEND TO ADMIN
+        admin_subject = f"NEW ORDER: {order.order_id} - ₹{order.total_price}"
+        admin_message = f"""
+        New Order Received!
+        
+        Customer: {user_name} ({user_email})
+        Phone: {order.user.profile.mobile if hasattr(order.user, 'profile') else 'N/A'}
+        
+        {order_details}
+        
+        Please check the admin panel for more details.
+        """
+        send_mail_async(admin_subject, admin_message, [settings.ADMIN_EMAIL])
+
+        # 2. SEND TO DEALER (If assigned to a location with a dealer)
+        # Find dealer for this location
+        from .models import Location, UserProfile
+        try:
+            location_obj = Location.objects.filter(name=order.location).first()
+            if location_obj:
+                dealers = UserProfile.objects.filter(is_dealer=True, dealer_locations=location_obj)
+                for dealer in dealers:
+                    if dealer.user.email:
+                        dealer_subject = f"New Job Assigned: {order.order_id}"
+                        dealer_message = f"""
+                        Hello {dealer.user.first_name},
+                        
+                        A new print job has been assigned to your location ({order.location}).
+                        
+                        {order_details}
+                        
+                        Please login to your dealer dashboard to process this order.
+                        """
+                        send_mail_async(dealer_subject, dealer_message, [dealer.user.email])
+        except Exception as e:
+            print(f"Error finding dealer for email: {e}")
+
+        # 3. SEND TO CUSTOMER
+        if user_email:
+            customer_subject = f"Order Confirmed: {order.order_id}"
+            customer_message = f"""
+            Hi {user_name},
+            
+            Thank you for ordering with FastCopy! Your payment was successful.
+            
+            {order_details}
+            
+            We will notify you once your order is ready for pickup/delivery.
+            
+            Track your order here: {settings.COMPANY_WEBSITE}/history/
+            
+            Best Regards,
+            FastCopy Team
+            """
+            send_mail_async(customer_subject, customer_message, [user_email])
+
+        print(f"✅ Notification emails triggered for Order {order.order_id}")
+        return True
+
+    except Exception as e:
+        print(f"❌ Error in send_order_notification_emails: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return False

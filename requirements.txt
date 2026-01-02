@@ -17,4 +17,7 @@ python-dotenv
 Pillow
 
 # Security & Utilities
-cryptographypython-dotenv==1.2.1
+cryptography
+
+# Production Server
+gunicorn

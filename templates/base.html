@@ -4,14 +4,23 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FastCopy | Premium Printing Hub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>{% block title %}FastCopy | Premium Online Xerox & Binding Hub{% endblock %}</title>
+    <meta name="description"
+        content="FastCopy is the leading online printing and binding service for Raghu, Lendi, and NSRIT Colleges. Professional quality xerox, spiral binding, and thesis printing delivered to your campus.">
+    <meta name="keywords"
+        content="fastcopy, raghu college xerox, lendi college xerox, nsrit college xerox, online printing Vizianagaram, campus xerox booking, spiral binding, soft binding">
+    <meta name="author" content="FastCopy Team">
+    <meta name="robots" content="index, follow">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    {% block extra_head %}{% endblock %}
 
     <style>
         /* --- 📱 MOBILE-FIRST RESPONSIVE ENGINE & NAVIGATION --- */
@@ -23,7 +32,8 @@
         .mobile-toggle {
             display: none;
             cursor: pointer;
-            z-index: 1100;
+            z-index: 2100;
+            /* Increased to stay above nav-links */
         }
 
         @media (max-width: 991px) {
@@ -36,21 +46,40 @@
 
             .nav-links-container {
                 display: none;
-                position: absolute;
-                top: 100%;
+                position: fixed;
+                /* Fixed to avoid scroll issues */
+                top: 65px;
+                /* Height of navbar */
                 left: 0;
                 width: 100%;
-                background: rgba(255, 255, 255, 0.98);
+                max-height: calc(100vh - 65px);
+                /* Ensure it doesn't go off screen */
+                overflow-y: auto;
+                background: rgba(255, 255, 255, 0.99);
                 backdrop-filter: blur(20px);
                 flex-direction: column;
-                padding: 15px 20px 30px 20px;
+                padding: 15px 20px 40px 20px;
                 border-bottom: 1px solid #e2e8f0;
-                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-                z-index: 1000;
+                box-shadow: 0 25px 30px -10px rgba(0, 0, 0, 0.15);
+                z-index: 2001;
+                /* Above marquee but under toggle */
             }
 
             .nav-links-container.active {
                 display: flex !important;
+                animation: slideInDown 0.3s ease-out;
+            }
+
+            @keyframes slideInDown {
+                from {
+                    transform: translateY(-10%);
+                    opacity: 0;
+                }
+
+                to {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
             }
 
             .nav-link-custom {
@@ -89,7 +118,18 @@
                 display: flex !important;
             }
 
-            /* Enhanced Marquee Mobile Engine */
+            /* Fix dropdown inside mobile menu */
+            .dropdown-menu {
+                position: static !important;
+                float: none;
+                width: 100%;
+                background: #f8fafc;
+                border: none;
+                box-shadow: none;
+                margin-top: 5px;
+                padding-left: 20px;
+            }
+
             .marquee-wrapper {
                 height: 35px !important;
                 display: flex;
@@ -99,7 +139,6 @@
 
             .marquee-content {
                 font-size: 10px !important;
-                /* Scaled down for mobile fit */
                 line-height: 35px;
             }
         }
@@ -178,11 +217,6 @@
             margin-left: 0.5rem;
         }
 
-        .floating-blob {
-            filter: blur(100px);
-            z-index: 1;
-        }
-
         .btn-3d {
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
@@ -191,25 +225,20 @@
             transform: translateY(-3px);
         }
 
-        /* Fixed Navbar & Content Spacing Fix */
         .glass-nav {
             z-index: 2000;
-            /* Higher than marquee */
             height: 65px;
-            /* Explicit height for calculation */
             display: flex;
             align-items: center;
         }
-
 
         .marquee-container {
             z-index: 1000;
             position: relative;
             margin-top: 65px;
-            /* Offset by navbar height to prevent overlap */
         }
 
-        /* Modern Marquee Animation - Works on all browsers including VPS */
+        /* Modern Marquee Animation */
         .marquee-wrapper {
             overflow: hidden;
             position: relative;
@@ -239,12 +268,10 @@
             }
         }
 
-        /* Pause animation on hover */
         .marquee-wrapper:hover .marquee-content {
             animation-play-state: paused;
         }
 
-        /* Prevent content jump */
         main {
             padding-top: 0 !important;
         }
@@ -358,13 +385,6 @@
                         {% endfor %}
                     </span>
                     {% endif %}
-                    <!-- Duplicate content for seamless loop -->
-                    <span class="marquee-item mr-12"><i class="fas fa-check-circle text-green-400 mr-2"></i> Order
-                        Before 8 PM: Delivery on {{ marquee_date_early|date:"l, d M" }}</span>
-                    <span class="marquee-item mr-12"><i class="fas fa-clock text-orange-400 mr-2"></i> Order After 8 PM:
-                        Delivery on {{ marquee_date_late|date:"l, d M" }}</span>
-                    <span class="marquee-item mr-12 text-red-300"><i class="  fas fa-ban mr-2"></i> Sunday:
-                        Closed</span>
                 </div>
             </div>
         </div>
@@ -409,7 +429,7 @@
                         <a href="#"
                             class="text-slate-400 hover:text-blue-500 transition-all transform hover:scale-125"><i
                                 class="fa-brands fa-instagram text-xl"></i></a>
-                        <a href="#"
+                        <a href="https://wa.me/918500290959"
                             class="text-slate-400 hover:text-blue-500 transition-all transform hover:scale-125"><i
                                 class="fa-brands fa-whatsapp text-xl"></i></a>
                         <a href="#"
@@ -423,8 +443,8 @@
                         Platform</h6>
                     <ul class="list-unstyled space-y-4">
                         <li><a href="{% url 'home' %}"
-                                class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Home
-                            </a></li>
+                                class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Home</a>
+                        </li>
                         <li><a href="{% url 'services' %}"
                                 class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Print
                                 Services</a></li>
@@ -433,13 +453,13 @@
                         </li>
                         <li><a href="{% url 'profile' %}"
                                 class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">Order
-                                Tracking</a></li>
+                                Status</a></li>
                     </ul>
                 </div>
 
                 <div class="col-6 col-md-3 col-lg-2" data-aos="fade-up" data-aos-delay="200">
                     <h6 class="footer-heading mb-8 font-black uppercase tracking-widest text-blue-500 text-xs">Legal
-                        Center</h6>
+                        Center center</h6>
                     <ul class="list-unstyled space-y-4">
                         <li><a href="{% url 'about' %}"
                                 class="footer-link text-slate-400 no-underline text-xs font-bold hover:text-white transition-colors uppercase tracking-tight">About
@@ -463,8 +483,7 @@
                         <div class="flex items-center gap-4 group">
                             <i class="fa-solid fa-phone text-blue-500 group-hover:rotate-12 transition-transform"></i>
                             <span class="text-[11px] font-black text-slate-300 uppercase tracking-tighter">+91
-                                8500290959
-                            </span>
+                                8500290959</span>
                         </div>
                         <div class="flex items-center gap-4 group">
                             <i
@@ -475,8 +494,8 @@
                         <div class="flex items-center gap-4 group">
                             <i class="fa-solid fa-location-dot text-blue-500 group-hover:bounce transition-all"></i>
                             <span
-                                class="text-[11px] font-black text-slate-300 uppercase tracking-tighter">Visakhapatnam,
-                                Andhra Pradesh</span>
+                                class="text-[11px] font-black text-slate-300 uppercase tracking-tighter">Vizaganagaram,
+                                AP, 535005</span>
                         </div>
                     </div>
                 </div>
@@ -489,7 +508,10 @@
                         &copy; 2025 FASTCOPY PRINTING HUB. ALL RIGHTS RESERVED.
                     </p>
                     <p class="text-[9px] text-slate-600 font-bold uppercase tracking-widest mb-0">
-                        DESIGNED & ENCRYPTED BY <span class="text-blue-600/50">FASTCOPY-CORE ENGINE</span>
+                        DESIGNED & ENCRYPTED BY <span class="text-blue-600/50">FASTCOPY TEAM</span>
+                    </p>
+                    <p class="text-[9px] text-slate-600 font-bold uppercase tracking-widest mb-0">
+                        <span class="text-white">Phani Uddagiri, Divakar Kolli, Sai Teja Kaki</span>
                     </p>
                 </div>
                 <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
@@ -515,20 +537,38 @@
             const icon = document.getElementById('menuIcon');
             const isClosing = nav.classList.contains('active');
 
-            nav.classList.toggle('active');
-
             if (!isClosing) {
+                nav.style.display = 'flex';
+                // Small delay to trigger animation
+                setTimeout(() => nav.classList.add('active'), 10);
                 icon.classList.replace('fa-bars-staggered', 'fa-xmark');
+                document.body.style.overflow = 'hidden'; // Prevent background scroll
             } else {
+                nav.classList.remove('active');
+                setTimeout(() => nav.style.display = 'none', 300);
                 icon.classList.replace('fa-xmark', 'fa-bars-staggered');
+                document.body.style.overflow = 'auto';
             }
         }
 
+        // Close menu on click outside
         document.addEventListener('click', (e) => {
             const nav = document.getElementById('navLinks');
             const toggle = document.querySelector('.mobile-toggle');
             if (nav.classList.contains('active') && !nav.contains(e.target) && !toggle.contains(e.target)) {
                 toggleMenu();
+            }
+        });
+
+        // Ensure menu closes on resize to desktop
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 992) {
+                const nav = document.getElementById('navLinks');
+                nav.classList.remove('active');
+                nav.style.display = '';
+                document.body.style.overflow = 'auto';
+                const icon = document.getElementById('menuIcon');
+                if (icon) icon.classList.replace('fa-xmark', 'fa-bars-staggered');
             }
         });
     </script>
