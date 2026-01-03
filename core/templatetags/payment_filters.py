@@ -6,8 +6,21 @@ register = template.Library()
 def final_amount(order):
     """
     Calculate the final amount for an order.
-    Returns the total_price (which is already the final amount after discount).
+    Logic: Original Price (or Total Price) - Discount Amount
     """
-    if order and hasattr(order, 'total_price'):
-        return order.total_price
-    return 0
+    if not order:
+        return 0
+        
+    try:
+        # Get values, defaulting to 0 if None
+        original = order.original_price if order.original_price is not None else order.total_price
+        discount = order.discount_amount if order.discount_amount is not None else 0
+        
+        # Calculate final paid amount
+        paid_amount = float(original) - float(discount)
+        return round(paid_amount, 2)
+    except:
+        # Fallback
+        if hasattr(order, 'total_price'):
+            return order.total_price
+        return 0
